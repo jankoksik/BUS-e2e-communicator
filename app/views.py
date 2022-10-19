@@ -8,3 +8,6 @@ views = Blueprint(__name__, "views")
 def MainPage():
     return render_template("index.html")
 
+@views.route("/register")
+def RegisterPage():
+    return render_template("register.html")
