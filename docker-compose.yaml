@@ -11,7 +11,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - "./db/baza.sql:/docker-entrypoint-initdb.d/1.sql"
+      - "./DB:/docker-entrypoint-initdb.d/DB.sql"
   admin:    
     image: adminer    
     restart: always
