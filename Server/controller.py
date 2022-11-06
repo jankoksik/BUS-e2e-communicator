@@ -2,6 +2,7 @@ import random
 import string
 import pyotp
 
+#obsłuż usera -> wyślij klucze publiczne, wpisz zaszyfrowane wiadomości do DB
 
 
 # Generate login with random upper, lower and digits
