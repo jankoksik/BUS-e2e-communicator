@@ -28,12 +28,11 @@ cursor = conn.cursor()
 
 @app.route("/register", methods=["POST"])
 def RegisterPage():
-    password = request.get_json()['pass']
+    content = request.get_json()
+    password = content['Pass']
+    publicKey = content['PubKey']
     username = controller.GetUsername(conn, cursor)
     return str(username)
-
-
-
 
 
 if __name__ == '__main__':

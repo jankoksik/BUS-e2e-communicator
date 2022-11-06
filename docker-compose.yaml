@@ -8,43 +8,39 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: SuperTajneHaslo
       MYSQL_DATABASE: DB
-    ports:
-      - "3306:3306"
+    ports: ['${DB_PORT}:${DB_PORT}']
     volumes:
       - "./DB:/docker-entrypoint-initdb.d/DB.sql"
-
+       
   admin:    
-    image: adminer    
+    image: adminer
     restart: always
-    ports:      
-      - "8080:8080"
+    ports: ['${ADMINER_PORT}:${ADMINER_PORT}']
 
   client1:
     build:
       context: ./Client
       args:
-        OPEN_PORT: 5000
+        OPEN_PORT: ${CLIENT_1_PORT}
     restart: always
     environment:
-      SERVER_PORT: 6060
+      SERVER_PORT: ${SERVER_PORT}
     ports:      
-      - "5000:5000"
-
+      - "${CLIENT_1_PORT}:${CLIENT_1_PORT}"
 
   server:
     build:
       context: ./Server
       args:
-        OPEN_PORT: 6060
+        OPEN_PORT: ${SERVER_PORT}
     restart: always
     environment:
       MYSQL_DATABASE_USER: root
       MYSQL_DATABASE_PASSWORD: SuperTajneHaslo
       MYSQL_DATABASE_DB: DB
       MYSQL_DATABASE_HOST: DB
-      MYSQL_DATABASE_PORT: 3306
-    ports:      
-      - "6060:6060"
+      MYSQL_DATABASE_PORT: ${DB_PORT}
+    ports: ["${SERVER_PORT}:${SERVER_PORT}"]
       
 
 
