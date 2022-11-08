@@ -10,7 +10,8 @@ services:
       MYSQL_DATABASE: DB
     ports: ['${DB_PORT}:${DB_PORT}']
     volumes:
-      - "./DB:/docker-entrypoint-initdb.d/DB.sql"
+      - "./DB/DB.sql:/docker-entrypoint-initdb.d/DB.sql"
+
        
   admin:    
     image: adminer
@@ -41,6 +42,7 @@ services:
       MYSQL_DATABASE_HOST: DB
       MYSQL_DATABASE_PORT: ${DB_PORT}
     ports: ["${SERVER_PORT}:${SERVER_PORT}"]
-      
+    depends_on:
+      - mysql
 
 
