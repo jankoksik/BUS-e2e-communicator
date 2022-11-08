@@ -9,6 +9,8 @@ services:
       MYSQL_ROOT_PASSWORD: SuperTajneHaslo
       MYSQL_DATABASE: DB
     ports: ['${DB_PORT}:${DB_PORT}']
+    security_opt:
+      - seccomp:unconfined
     volumes:
       - "./DB/DB.sql:/docker-entrypoint-initdb.d/DB.sql"
 
