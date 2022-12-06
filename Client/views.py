@@ -10,4 +10,5 @@ def MainPage():
 
 @views.route("/register")
 def RegisterPage():
-    return render_template("register.html")
+    privKey, pubKey = controller.GenerateKeys()
+    return controller.SavePrivateAndSendPublicKey("user", privKey, pubKey)

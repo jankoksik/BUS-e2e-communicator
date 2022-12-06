@@ -47,5 +47,12 @@ services:
     ports: ["${SERVER_PORT}:${SERVER_PORT}"]
     depends_on:
       - mysql
+    volumes:
+        - key:/key/
+
+
+volumes:
+    key:
+        external: false
 
 

@@ -23,16 +23,21 @@ mysql = MySQL()
 mysql.init_app(app)
 conn = mysql.connect()
 cursor = conn.cursor()
+#init
+privKey, pubKey = controller.GenerateKeys()
+server = controller.SavePrivateAndSendPublicKey(privKey, pubKey,conn, cursor)
 
+server = None
 
 
 @app.route("/register", methods=["POST"])
 def RegisterPage():
     content = request.get_json()
-    password = content['Pass']
+    username = content['username']
     publicKey = content['PubKey']
-    username = controller.GetUsername(conn, cursor)
-    return str(username)
+    usernameWithHash = controller.GetUsername(username, conn, cursor)
+    controller.SaveDataToDB(usernameWithHash,publicKey, conn, cursor)
+    return str(usernameWithHash)
 
 
 if __name__ == '__main__':
