@@ -1,2 +1,5 @@
 flask secret - https://stackoverflow.com/questions/34902378/where-do-i-get-secret-key-for-flask
 password hash - https://www.geeksforgeeks.org/hashing-passwords-in-python-with-bcrypt/
+
+
+server -> app : dodać jakiś klucz sesyjny do trzymania info o zapamiętaniu auth usera czy coś

@@ -9,9 +9,13 @@ import pickle
 import json
 
 class Server:
-  def __init__(self, key):
-    self.username = "SERVER"
-    self.key = key
+    def __init__(self, key):
+        self.username = "SERVER"
+        self.key = key
+    
+    def getKey(self):
+        return self.key
+
 
 
 #returns privatekey, publickey
@@ -79,4 +83,31 @@ def SaveDataToDB(username,key,conn, cursor):
         conn.commit()
 
 
+# returns unencrypted and encrypted secret
+def AuthTaskGeneration(user, conn, cursor):
+    pk = None
+    characters = string.digits + string.ascii_letters + string.punctuation
+    SEC = ''.join(random.choice(characters) for i in range(256))
+    cursor.execute("SELECT * from Users WHERE username= %(login)s", {'login': user})
+    conn.commit()
+    data = cursor.fetchall()
+    if(len(data) == 1):
+        pk = data['PublicKey']
+        encrypt =  rsa.encrypt(SEC.encode(),pk)
+        return encrypt, SEC
+    else:
+        return False, False
 
+def Decrypt(text):
+    try:
+        msg = rsa.decrypt(text,Server.getKey).decode('ascii')
+        return msg
+    except:
+        return False 
+
+
+
+
+
+
+    

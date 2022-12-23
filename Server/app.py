@@ -4,6 +4,8 @@ from flaskext.mysql import MySQL
 import secrets
 from datetime import datetime
 import controller
+import requests
+import json
 import os
 
 #Flask config
@@ -27,6 +29,7 @@ cursor = conn.cursor()
 privKey, pubKey = controller.GenerateKeys()
 server = controller.SavePrivateAndSendPublicKey(privKey, pubKey,conn, cursor)
 
+
 server = None
 
 
@@ -34,10 +37,34 @@ server = None
 def RegisterPage():
     content = request.get_json()
     username = content['username']
-    publicKey = content['PubKey']
+    publicKey = str(content['PubKey'])
     usernameWithHash = controller.GetUsername(username, conn, cursor)
     controller.SaveDataToDB(usernameWithHash,publicKey, conn, cursor)
     return str(usernameWithHash)
+
+@app.route("/pubkey", methods=["POST"])
+def getPublicKey():
+    return str(pubKey)
+
+
+#Get username of user that whant to authenticate
+#TODO Dodać jakieś ciasteczko czy coś co będzie trzymać sesje
+@app.route("/authRequest", methods=["POST"])
+def auth():
+    content = request.get_json()
+    username = content['username']
+    encrypt, sec = controller.AuthTaskGeneration(username, conn, cursor)
+    if sec == False: 
+        return False
+    pack = {'secret': str(encrypt)}
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    x = requests.post(request.base_url+"/auth", data=json.dumps(pack), headers=headers)
+    dec = controller.Decrypt(x.text)
+    if sec == dec:
+        return True
+    else :
+        return False
+
 
 
 if __name__ == '__main__':

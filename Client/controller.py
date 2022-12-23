@@ -14,9 +14,13 @@ import json
 
 
 class user:
-  def __init__(self, username, key):
-    self.username = username
-    self.key = key
+    def __init__(self, username, key):
+        self.username = username
+        self.key = key
+
+    def getKey(self):
+        return self.key
+
 
 #returns privatekey, publickey
 def GenerateKeys(): 
@@ -58,6 +62,13 @@ def SavePrivateAndSendPublicKey(username, private_key, public_key):
     with open('key.pickle', 'wb') as handle:
         pickle.dump(u, handle, protocol=pickle.HIGHEST_PROTOCOL)
     return x.text
+
+# Returns false if key doesn't exist and ture if everything seems ok
+def LoadPrivateKey():    
+    with open('key.pickle', 'rb') as handle:
+        u = pickle.laods(handle, protocol=pickle.HIGHEST_PROTOCOL)
+        return True
+    return False
 
 
 
