@@ -1,5 +1,5 @@
 flask
 requests
 flask-mysql
-pyotp
+rsa
 cryptography

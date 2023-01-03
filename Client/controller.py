@@ -1,6 +1,4 @@
-from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend as crypto_default_backend
+import rsa
 import os
 import requests
 import pickle
@@ -21,55 +19,43 @@ class user:
     def getKey(self):
         return self.key
 
+    def getUsername(self):
+        return self.username
+
+
 
 #returns privatekey, publickey
 def GenerateKeys(): 
     #key specs
-    key = rsa.generate_private_key(
-        backend=crypto_default_backend(),
-        public_exponent=65537,
-        key_size=2048
-    )
-    #generate private key
-    private_key = key.private_bytes(
-        crypto_serialization.Encoding.PEM,
-        crypto_serialization.PrivateFormat.PKCS8,
-        crypto_serialization.NoEncryption()
-    )
-    #generate public key
-    public_key = key.public_key().public_bytes(
-        crypto_serialization.Encoding.OpenSSH,
-        crypto_serialization.PublicFormat.OpenSSH
-    )
-    return private_key, public_key
+    (pubkey, privkey) = rsa.newkeys(1024, poolsize=8)
+    return privkey,pubkey
 
 def SavePrivateAndSendPublicKey(username, private_key, public_key):
     path = './key/'
     url = 'http://bus-e2e-communicator_server_1:6060/register'
-#Creating directory and saving private key
+    #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
     if not isExist:
         # Create a new directory because it does not exist 
         os.makedirs(path)
     
-#Sending public key and username
-    pack = {'username': str(username), 'PubKey': str(public_key)}
+    #Sending public key and username
+    publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
+    pack = {'username': str(username), 'PubKey': str(publicKeyPkcs1PEM)}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     x = requests.post(url, data=json.dumps(pack), headers=headers)
     print(x.text)
     u = user(x.text, private_key)
-    with open('key.pickle', 'wb') as handle:
+    with open(path+'key.pickle', 'wb') as handle:
         pickle.dump(u, handle, protocol=pickle.HIGHEST_PROTOCOL)
     return x.text
 
 # Returns false if key doesn't exist and ture if everything seems ok
 def LoadPrivateKey():    
-    with open('key.pickle', 'rb') as handle:
-        u = pickle.laods(handle, protocol=pickle.HIGHEST_PROTOCOL)
-        return True
+    path = './key/'
+    with open(path+'key.pickle', 'rb') as handle:
+        u:user = pickle.load(handle)
+        return u
     return False
-
-
-
 

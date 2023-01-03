@@ -1,9 +1,8 @@
+import json
 from flask import Blueprint, render_template, request
 import requests
 import controller
-from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend as crypto_default_backend
+import rsa
 
 views = Blueprint(__name__, "views")
 
@@ -21,13 +20,28 @@ def authorize():
     try:
         content = request.get_json()
         secret = content['secret']
-        msg = rsa.decrypt(secret,controller.user.getKey()).decode('ascii')
+        user = controller.LoadPrivateKey()
+        msg = rsa.decrypt(secret,rsa.PrivateKey.load_pkcs1(user.getKey())).decode('utf-8')
         x = requests.post("http://bus-e2e-communicator_server_1:6060/pubkey")
         ServerPublicKey = x.text
-        encrypt =  rsa.encrypt(msg.encode(),ServerPublicKey)
+        pubkey = rsa.PrivateKey.load_pkcs1(ServerPublicKey)
+        SECMSG = msg.encode('utf-8')
+        encrypt =  rsa.encrypt(SECMSG, pubkey)
         return encrypt
     except:
-        return False 
+        return str(False)
 
+@views.route("/authTest")
+def testAuth():
+    user = controller.LoadPrivateKey()
+    pack = {'username': str(user.getUsername())}
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    x = requests.post("http://bus-e2e-communicator_server_1:6060/authRequest", data=json.dumps(pack), headers=headers)
+    return x.text
+
+@views.route("/getUsername")
+def testUsername():
+    user = controller.LoadPrivateKey()
+    return str(user.getUsername())
 
 

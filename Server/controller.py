@@ -1,8 +1,7 @@
 import random
 import string
-from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend as crypto_default_backend
+import rsa
+import base64
 import os
 import requests
 import pickle
@@ -16,46 +15,31 @@ class Server:
     def getKey(self):
         return self.key
 
-
+SERV = None
 
 #returns privatekey, publickey
 def GenerateKeys(): 
     #key specs
-    key = rsa.generate_private_key(
-        backend=crypto_default_backend(),
-        public_exponent=65537,
-        key_size=2048
-    )
-    #generate private key
-    private_key = key.private_bytes(
-        crypto_serialization.Encoding.PEM,
-        crypto_serialization.PrivateFormat.PKCS8,
-        crypto_serialization.NoEncryption()
-    )
-    #generate public key
-    public_key = key.public_key().public_bytes(
-        crypto_serialization.Encoding.OpenSSH,
-        crypto_serialization.PublicFormat.OpenSSH
-    )
-    return private_key, public_key
+    (pubkey, privkey) = rsa.newkeys(1024, poolsize=8)
+    return privkey,pubkey
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
-    path = './key/key.pickle'
+    path = './key/'
 #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
-    u = None
     if not isExist:
         # Create a new directory because it does not exist 
         os.makedirs(path)
-        with open('key.pickle', 'wb') as handle:
-            pickle.dump(u, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            SaveDataToDB("SERVER",public_key,conn, cursor)
-            u = Server(private_key)
+        with open(path+'key.pickle', 'wb') as handle:
+            SERV = Server(private_key)
+            pickle.dump(SERV, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
+            SaveDataToDB("SERVER",publicKeyPkcs1PEM,conn, cursor)
     else:
-        with open('key.pickle', 'rb') as handle:
-            u = pickle.load(handle)
-    return u
+        with open(path+'key.pickle', 'rb') as handle:
+            SERV = pickle.load(handle)
+    return SERV
 
 
 
@@ -87,23 +71,30 @@ def SaveDataToDB(username,key,conn, cursor):
 def AuthTaskGeneration(user, conn, cursor):
     pk = None
     characters = string.digits + string.ascii_letters + string.punctuation
-    SEC = ''.join(random.choice(characters) for i in range(256))
+    SEC = ''.join(random.choice(characters) for i in range(100))
     cursor.execute("SELECT * from Users WHERE username= %(login)s", {'login': user})
     conn.commit()
     data = cursor.fetchall()
     if(len(data) == 1):
-        pk = data['PublicKey']
-        encrypt =  rsa.encrypt(SEC.encode(),pk)
+        pk = data[0][2]
+        pubkey = rsa.PublicKey.load_pkcs1(pk)
+        SECMSG = SEC.encode('utf-8')
+        encrypt =  rsa.encrypt(SECMSG, pubkey)
         return encrypt, SEC
     else:
         return False, False
 
+def LoadPrivateKey():    
+    with open('./key/key.pickle', 'rb') as handle:
+        u:Server = pickle.load(handle)
+        return u
+    return False
+
+
 def Decrypt(text):
-    try:
-        msg = rsa.decrypt(text,Server.getKey).decode('ascii')
-        return msg
-    except:
-        return False 
+    msg = rsa.decrypt(text, LoadPrivateKey().getKey())
+    return msg.decode('utf-8')
+    
 
 
 

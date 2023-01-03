@@ -48,22 +48,21 @@ def getPublicKey():
 
 
 #Get username of user that whant to authenticate
-#TODO Dodać jakieś ciasteczko czy coś co będzie trzymać sesje
 @app.route("/authRequest", methods=["POST"])
 def auth():
     content = request.get_json()
     username = content['username']
     encrypt, sec = controller.AuthTaskGeneration(username, conn, cursor)
     if sec == False: 
-        return False
+        return str(False) + " not eq"
     pack = {'secret': str(encrypt)}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     x = requests.post(request.base_url+"/auth", data=json.dumps(pack), headers=headers)
     dec = controller.Decrypt(x.text)
     if sec == dec:
-        return True
+        return str(True)
     else :
-        return False
+        return str(False) + " | " + str(sec) + " =?= " + str(dec)
 
 
 
