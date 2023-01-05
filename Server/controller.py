@@ -96,9 +96,17 @@ def Decrypt(text):
     return msg.decode('utf-8')
     
 
+def SaveMsgToDB(senderid, receiver, part, msg, conn, cursor):
+        cursor.execute("INSERT INTO MSG (sender, to, participants, msg) VALUES ( %(sid)s,%(r)s,%(p)s,%(m)s)", {'sid': senderid, 't':receiver, 'p':part, 'm':msg})
+        conn.commit()
+
+def SendUserKey(req_user, conn, cursor):
+    cursor.execute("SELECT PublicKey from Users WHERE username= %(r_user)s", {'r_user': req_user})
+    conn.commit()
+    key=cursor.fetchall()
+    if(len(key)==0):
+        return False
+    else:
+        return key
 
 
-
-
-
-    
