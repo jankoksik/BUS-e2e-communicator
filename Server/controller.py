@@ -94,7 +94,10 @@ def LoadPrivateKey():
 def Decrypt(text):
     msg = rsa.decrypt(bytes(text, encoding='utf-8'), LoadPrivateKey().getKey())
     return msg.decode('utf-8')
-    
+
+#for test | Delete later 
+def getPrivateKeyString():
+    return LoadPrivateKey().getKey().save_pkcs1().decode('utf8') 
 
 def SaveMsgToDB(senderid, receiver, part, msg, conn, cursor):
         cursor.execute("INSERT INTO MSG (sender, to, participants, msg) VALUES ( %(sid)s,%(r)s,%(p)s,%(m)s)", {'sid': senderid, 't':receiver, 'p':part, 'm':msg})

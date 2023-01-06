@@ -102,6 +102,7 @@ def getUserPublicKey():
 def testMSG():
     content = request.get_json()
     msg = content['msg']
+    return str(msg) + " : " + controller.getPrivateKeyString()
     return controller.Decrypt(msg)
 
 if __name__ == '__main__':
