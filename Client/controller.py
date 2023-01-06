@@ -59,3 +59,27 @@ def LoadPrivateKey():
         return u
     return False
 
+def RequestUserKey(req_user):
+    url = 'http://bus-e2e-communicator_server_1:6060/usrpubkey'
+    msg = {'req_user': str(req_user)}
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    x = requests.post(url, data=json.dumps(msg), headers=headers)
+    print(x.text)
+    return x.text
+
+def SendMsg(userid, receiver, participants, msg):
+    url = 'http://bus-e2e-communicator_server_1:6060/send'
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    key = RequestUserKey(receiver)
+    msg = msg.encode('utf-8')
+    encrypt =  rsa.encrypt(msg, key)
+    data = {'userid': userid, 'receiver': str(receiver), 'participants': str(participants), 'msg':str(encrypt)}
+    x = requests.post(url, data=json.dumps(data), headers=headers)
+    print(x.text)
+    return x.text
+
+def ReceiveMsg(msg):
+    key=LoadPrivateKey().getKey()
+    decrypt = rsa.decrypt(msg, key)
+    print(decrypt.decode('utf-8'))
+    return decrypt.decode('utf-8')

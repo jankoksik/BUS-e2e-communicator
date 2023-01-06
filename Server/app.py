@@ -81,6 +81,23 @@ def verify():
     
 
 
+@app.route("/send", methods=["POST"])
+def SenderPage():
+    content = request.get_json()
+    senderid = content['senderid']
+    receiver = content['receiver']
+    participants = content['participants']
+    msg = content['msg']
+    controller.SaveMsgToDB(senderid, receiver, participants, msg, conn, cursor)
+    return str(senderid)
+
+@app.route("/usrpubkey", methods=["POST"])
+def getUserPublicKey():
+    content = request.get_json()
+    req_user = content['req_user']
+    key=controller.SendUserKey(req_user, conn, cursor)
+    return str(key)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
