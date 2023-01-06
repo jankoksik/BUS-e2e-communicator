@@ -55,7 +55,7 @@ def testUsername():
     user = controller.LoadPrivateKey()
     return str(user.getUsername())
 
-
+#All the time "rsa.pkcs1.DecryptionError: Decryption failed" error....
 @views.route("/testMSG")
 def testMSG():
     p = requests.post("http://bus-e2e-communicator_server_1:6060/pubkey")
