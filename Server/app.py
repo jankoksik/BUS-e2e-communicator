@@ -98,6 +98,11 @@ def getUserPublicKey():
     key=controller.SendUserKey(req_user, conn, cursor)
     return str(key)
 
+@app.route("/testMSG", methods=["POST"])
+def testMSG():
+    content = request.get_json()
+    msg = content['msg']
+    return controller.Decrypt(msg)
 
 if __name__ == '__main__':
     app.run(debug=True)

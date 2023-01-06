@@ -56,3 +56,18 @@ def testUsername():
     return str(user.getUsername())
 
 
+@views.route("/testMSG")
+def testMSG():
+    p = requests.post("http://bus-e2e-communicator_server_1:6060/pubkey")
+    ServerPublicKey = bytes(p.text, encoding='utf-8')
+    pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey)
+    msg = "TEST_12345"
+    SECMSG = msg.encode('utf-8')
+    encrypt =  rsa.encrypt(SECMSG, pubkey)
+
+    pack = {'msg':str(encrypt)}
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    r = requests.post("http://bus-e2e-communicator_server_1:6060/testMSG", data=json.dumps(pack), headers=headers)
+    return r.text
+
+
