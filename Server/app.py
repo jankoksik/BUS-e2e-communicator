@@ -7,6 +7,7 @@ import controller
 import requests
 import json
 import os
+import tokenz
 
 #Flask config
 app = Flask(__name__)
@@ -28,6 +29,7 @@ cursor = conn.cursor()
 #init
 privKey, pubKey = controller.GenerateKeys()
 server = controller.SavePrivateAndSendPublicKey(privKey, pubKey,conn, cursor)
+ENC_ = []
 
 
 server = None
@@ -44,7 +46,8 @@ def RegisterPage():
 
 @app.route("/pubkey", methods=["POST"])
 def getPublicKey():
-    return str(pubKey)
+    publicKeyPkcs1PEM = pubKey.save_pkcs1().decode('utf8') 
+    return str(publicKeyPkcs1PEM)
 
 
 #Get username of user that whant to authenticate
@@ -54,15 +57,28 @@ def auth():
     username = content['username']
     encrypt, sec = controller.AuthTaskGeneration(username, conn, cursor)
     if sec == False: 
-        return str(False) + " not eq"
-    pack = {'secret': str(encrypt)}
-    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    x = requests.post(request.base_url+"/auth", data=json.dumps(pack), headers=headers)
-    dec = controller.Decrypt(x.text)
-    if sec == dec:
-        return str(True)
-    else :
-        return str(False) + " | " + str(sec) + " =?= " + str(dec)
+        return str(False) 
+    
+    c = tokenz.token(encrypt, sec)
+    ENC_.append(c)
+    return str(encrypt) #encrypt
+
+@app.route("/verify", methods=["POST"])
+def verify():
+    content = request.get_json()
+    enc = content['ENC']
+    dec = controller.Decrypt(content['SEC'])
+
+    for token in enc:
+        if not token.isExpired():
+            if token.getEnc() == enc:
+                if token.getSec() == dec:
+                    ENC_.remove(token)
+                    return str(True)
+        else:
+            ENC_.remove(token)
+    return str(False)
+    
 
 
 

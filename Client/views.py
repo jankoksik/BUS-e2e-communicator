@@ -37,7 +37,19 @@ def testAuth():
     pack = {'username': str(user.getUsername())}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     x = requests.post("http://bus-e2e-communicator_server_1:6060/authRequest", data=json.dumps(pack), headers=headers)
-    return x.text
+    secret = x.text
+    msg = x.text
+    #msg = rsa.decrypt(bytes(secret, encoding='utf-8'),user.getKey()).decode('utf-8')
+    p = requests.post("http://bus-e2e-communicator_server_1:6060/pubkey")
+    ServerPublicKey = bytes(p.text, encoding='utf-8')
+    pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey)
+    SECMSG = msg.encode('utf-8')
+    encrypt =  rsa.encrypt(SECMSG, pubkey)
+
+    pack = {'ENC': str(secret), 'SEC' : str(encrypt)}
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    r = requests.post("http://bus-e2e-communicator_server_1:6060/verify", data=json.dumps(pack), headers=headers)
+    return r.text
 
 @views.route("/getUsername")
 def testUsername():

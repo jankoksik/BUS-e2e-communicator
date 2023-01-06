@@ -20,7 +20,7 @@ SERV = None
 #returns privatekey, publickey
 def GenerateKeys(): 
     #key specs
-    (pubkey, privkey) = rsa.newkeys(1024, poolsize=8)
+    (pubkey, privkey) = rsa.newkeys(2048, poolsize=8)
     return privkey,pubkey
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
@@ -71,7 +71,7 @@ def SaveDataToDB(username,key,conn, cursor):
 def AuthTaskGeneration(user, conn, cursor):
     pk = None
     characters = string.digits + string.ascii_letters + string.punctuation
-    SEC = ''.join(random.choice(characters) for i in range(100))
+    SEC = ''.join(random.choice(characters) for i in range(128))
     cursor.execute("SELECT * from Users WHERE username= %(login)s", {'login': user})
     conn.commit()
     data = cursor.fetchall()
@@ -90,9 +90,9 @@ def LoadPrivateKey():
         return u
     return False
 
-
+#save private key as pem text and try to read it that way
 def Decrypt(text):
-    msg = rsa.decrypt(text, LoadPrivateKey().getKey())
+    msg = rsa.decrypt(bytes(text, encoding='utf-8'), LoadPrivateKey().getKey())
     return msg.decode('utf-8')
     
 

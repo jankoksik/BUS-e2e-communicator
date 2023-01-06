@@ -27,7 +27,7 @@ class user:
 #returns privatekey, publickey
 def GenerateKeys(): 
     #key specs
-    (pubkey, privkey) = rsa.newkeys(1024, poolsize=8)
+    (pubkey, privkey) = rsa.newkeys(2048, poolsize=8)
     return privkey,pubkey
 
 def SavePrivateAndSendPublicKey(username, private_key, public_key):
