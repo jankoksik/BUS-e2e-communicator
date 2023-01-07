@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request
 import requests
 import controller
 import rsa
+import base64
 
 views = Blueprint(__name__, "views")
 
@@ -22,7 +23,7 @@ def authorize():
         secret = content['secret']
         user = controller.LoadPrivateKey()
         msg = rsa.decrypt(secret,rsa.PrivateKey.load_pkcs1(user.getKey())).decode('utf-8')
-        x = requests.post("http://bus-e2e-communicator_server_1:6060/pubkey")
+        x = requests.post("http://bus-e2e-communicator-server-1:6060/pubkey")
         ServerPublicKey = x.text
         pubkey = rsa.PrivateKey.load_pkcs1(ServerPublicKey)
         SECMSG = msg.encode('utf-8')
@@ -36,10 +37,10 @@ def testAuth():
     user = controller.LoadPrivateKey()
     pack = {'username': str(user.getUsername())}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    x = requests.post("http://bus-e2e-communicator_server_1:6060/authRequest", data=json.dumps(pack), headers=headers)
+    x = requests.post("http://bus-e2e-communicator-server-1:6060/authRequest", data=json.dumps(pack), headers=headers)
     secret = x.text
     msg = rsa.decrypt(bytes(secret, encoding='utf-8'),user.getKey()).decode('utf-8')
-    p = requests.post("http://bus-e2e-communicator_server_1:6060/pubkey")
+    p = requests.post("http://bus-e2e-communicator-server-1:6060/pubkey")
     ServerPublicKey = bytes(p.text, encoding='utf-8')
     pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey)
     SECMSG = msg.encode('utf-8')
@@ -47,7 +48,7 @@ def testAuth():
 
     pack = {'ENC': str(secret), 'SEC' : str(encrypt)}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    r = requests.post("http://bus-e2e-communicator_server_1:6060/verify", data=json.dumps(pack), headers=headers)
+    r = requests.post("http://bus-e2e-communicator-server-1:6060/verify", data=json.dumps(pack), headers=headers)
     return r.text
 
 @views.route("/getUsername")
@@ -58,16 +59,16 @@ def testUsername():
 #All the time "rsa.pkcs1.DecryptionError: Decryption failed" error....
 @views.route("/testMSG")
 def testMSG():
-    p = requests.post("http://bus-e2e-communicator_server_1:6060/pubkey")
+    p = requests.post("http://bus-e2e-communicator-server-1:6060/pubkey")
     ServerPublicKey = bytes(p.text, encoding='utf-8')
-    pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey)
+    pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey,'PEM')
     msg = "TEST_12345"
     SECMSG = msg.encode('utf-8')
     encrypt =  rsa.encrypt(SECMSG, pubkey)
-    
-    pack = {'msg':str(encrypt)}
+    encrypt = base64.b64encode(encrypt).decode('ascii')
+    pack = {'msg':encrypt}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    r = requests.post("http://bus-e2e-communicator_server_1:6060/testMSG", data=json.dumps(pack), headers=headers)
+    r = requests.post("http://bus-e2e-communicator-server-1:6060/testMSG", data=json.dumps(pack), headers=headers)
     return r.text
 
 

@@ -32,7 +32,7 @@ def GenerateKeys():
 
 def SavePrivateAndSendPublicKey(username, private_key, public_key):
     path = './key/'
-    url = 'http://bus-e2e-communicator_server_1:6060/register'
+    url = 'http://bus-e2e-communicator-server-1:6060/register'
     #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
@@ -41,7 +41,7 @@ def SavePrivateAndSendPublicKey(username, private_key, public_key):
         os.makedirs(path)
     
     #Sending public key and username
-    publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
+    publicKeyPkcs1PEM = public_key.save_pkcs1('PEM')#.decode('utf8') 
     pack = {'username': str(username), 'PubKey': str(publicKeyPkcs1PEM)}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     x = requests.post(url, data=json.dumps(pack), headers=headers)
@@ -60,7 +60,7 @@ def LoadPrivateKey():
     return False
 
 def RequestUserKey(req_user):
-    url = 'http://bus-e2e-communicator_server_1:6060/usrpubkey'
+    url = 'http://bus-e2e-communicator-server-1:6060/usrpubkey'
     msg = {'req_user': str(req_user)}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     x = requests.post(url, data=json.dumps(msg), headers=headers)
@@ -68,7 +68,7 @@ def RequestUserKey(req_user):
     return x.text
 
 def SendMsg(userid, receiver, participants, msg):
-    url = 'http://bus-e2e-communicator_server_1:6060/send'
+    url = 'http://bus-e2e-communicator-server-1:6060/send'
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     key = RequestUserKey(receiver)
     msg = msg.encode('utf-8')

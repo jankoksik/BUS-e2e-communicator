@@ -8,16 +8,24 @@ import pickle
 import json
 
 class Server:
-    def __init__(self, key):
+    def __init__(self, pubkey, prvkey):
         self.username = "SERVER"
-        self.key = key
-    
-    def getKey(self):
-        return self.key
+        self.pubkey = pubkey
+        self.prvkey=prvkey
+    #def __init__(self):
+    #    self.username = "SERVER"
+
+    def getPubKey(self):
+        return self.pubkey
+    def getPrvKey(self):
+        return self.prvkey
+    def setPubKey(self, pubkey):
+        self._pubkey = pubkey
+    def setPrvKey(self, prvkey):
+        self._prvkey = prvkey
 
 SERV = None
-
-#returns privatekey, publickey
+#returns new privatekey, publickey
 def GenerateKeys(): 
     #key specs
     (pubkey, privkey) = rsa.newkeys(2048, poolsize=8)
@@ -31,14 +39,26 @@ def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
     if not isExist:
         # Create a new directory because it does not exist 
         os.makedirs(path)
-        with open(path+'key.pickle', 'wb') as handle:
-            SERV = Server(private_key)
-            pickle.dump(SERV, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
-            SaveDataToDB("SERVER",publicKeyPkcs1PEM,conn, cursor)
+        #with open(path+'key.pickle', 'wb') as handle:
+            #SERV = Server(public_key,private_key)
+            #SERV.setPrvKey(private_key)
+            #SERV.getPubKey(public_key)
+            #pickle.dump(SERV, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            #publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
+        SERV = Server(public_key,private_key)
+        with open(path+'privatekey.pem', 'wb') as file:
+            file.write(private_key.save_pkcs1('PEM'))
+        with open(path+'publickey.pem', 'wb') as file:
+            file.write(public_key.save_pkcs1('PEM'))
+        SaveDataToDB("SERVER",public_key,conn, cursor)
     else:
-        with open(path+'key.pickle', 'rb') as handle:
-            SERV = pickle.load(handle)
+        #with open(path+'key.pickle', 'rb') as handle:
+            #SERV:Server = pickle.load(handle)
+        with open(path+'privatekey.pem', 'rb') as file:
+            SERV.setPrvKey(rsa.PrivateKey.load_pkcs1(file.read()))
+        with open(path+'publickey.pem', 'rb') as file:
+            SERV.setPubKey(rsa.PublicKey.load_pkcs1(file.read()))
+
     return SERV
 
 
@@ -80,23 +100,32 @@ def AuthTaskGeneration(user, conn, cursor):
         pubkey = rsa.PublicKey.load_pkcs1(pk)
         SECMSG = SEC.encode('utf-8')
         encrypt =  rsa.encrypt(SECMSG, pubkey)
+        encrypt = base64.b64encode(encrypt).decode('ascii')
         return encrypt, SEC
     else:
         return False, False
 
-def LoadPrivateKey():    
+
+#def GetPublickey():
+#    return SERV.getPubKey()
+
+#def LoadPrivateKey():    
     with open('./key/key.pickle', 'rb') as handle:
         u:Server = pickle.load(handle)
+        #key = rsa.PrivateKey.load_pkcs1(str(u.getKey()))
+        #print(u.getKey().save_pkcs1().decode('utf8') )
         return u
+        
     return False
 
 #save private key as pem text and try to read it that way
-def Decrypt(text):
-    msg = rsa.decrypt(bytes(text, encoding='utf-8'), LoadPrivateKey().getKey())
+def Decrypt(text, prvkey):
+    msg = rsa.decrypt(base64.b64decode(text),prvkey)
+    #msg = rsa.decrypt(bytes(text, encoding='utf-8'), prvkey)
     return msg.decode('utf-8')
 
 #for test | Delete later 
-def getPrivateKeyString():
+#def getPrivateKeyString():
     return LoadPrivateKey().getKey().save_pkcs1().decode('utf8') 
 
 def SaveMsgToDB(senderid, receiver, part, msg, conn, cursor):
