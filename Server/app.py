@@ -8,6 +8,7 @@ import requests
 import json
 import os
 import tokenz
+import rsa
 
 #Flask config
 app = Flask(__name__)
@@ -66,7 +67,12 @@ def auth():
 def verify():
     content = request.get_json()
     enc = content['ENC']
-    dec = controller.Decrypt(content['SEC'])
+    #print(type(server.getPrvKey()))
+    key = server.getPrvKey()
+    key = key.save_pkcs1('PEM')
+    print(key)
+    #print(content['SEC'])
+    dec = controller.Decrypt(content['SEC'], key)
 
     for token in enc:
         if not token.isExpired():

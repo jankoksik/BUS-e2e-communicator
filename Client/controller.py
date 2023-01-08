@@ -3,6 +3,7 @@ import os
 import requests
 import pickle
 import json
+import base64
 
 #1. sprawdź czy masz konto
 #jeśli nie to wygeneruj konto: losowanie nazwy usera, wpisywanie hasła, OTP, generacja kluczy, wysłanie do serwera
@@ -63,9 +64,10 @@ def RequestUserKey(req_user):
     url = 'http://bus-e2e-communicator-server-1:6060/usrpubkey'
     msg = {'req_user': str(req_user)}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    x = requests.post(url, data=json.dumps(msg), headers=headers)
-    print(x.text)
-    return x.text
+    x = bytes(requests.post(url, data=json.dumps(msg), headers=headers).text, encoding='utf-8')
+    usr_key = rsa.PublicKey.load_pkcs1(x,'PEM')
+    print(usr_key)
+    return usr_key
 
 def SendMsg(userid, receiver, participants, msg):
     url = 'http://bus-e2e-communicator-server-1:6060/send'
@@ -73,6 +75,7 @@ def SendMsg(userid, receiver, participants, msg):
     key = RequestUserKey(receiver)
     msg = msg.encode('utf-8')
     encrypt =  rsa.encrypt(msg, key)
+    encrypt = base64.b64encode(encrypt).decode('ascii')
     data = {'userid': userid, 'receiver': str(receiver), 'participants': str(participants), 'msg':str(encrypt)}
     x = requests.post(url, data=json.dumps(data), headers=headers)
     print(x.text)
@@ -80,6 +83,6 @@ def SendMsg(userid, receiver, participants, msg):
 
 def ReceiveMsg(msg):
     key=LoadPrivateKey().getKey()
-    decrypt = rsa.decrypt(msg, key)
+    decrypt = rsa.decrypt(base64.b64decode(msg), key)
     print(decrypt.decode('utf-8'))
     return decrypt.decode('utf-8')

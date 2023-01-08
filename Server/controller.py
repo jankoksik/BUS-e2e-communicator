@@ -33,6 +33,7 @@ def GenerateKeys():
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
     path = './key/'
+    #SERV = None
 #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
