@@ -93,13 +93,14 @@ def AuthTaskGeneration(user, conn, cursor):
     characters = string.digits + string.ascii_letters + string.punctuation
     SEC = ''.join(random.choice(characters) for i in range(128))
     pk = SendUserKey(user, conn, cursor)
-    
+    pk = pk.replace(b'\\n', b'\n').decode('ascii')
+    print(type(pk), pk)
+    #key = b'-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAwC9NK0yGvK4Y3CazjBaXysRMNxd6oD0RJQfCrAODFF2+yS6Fn5Xb\nrhL+ZB7bUwFh/3gX0EBmRf+Sq96JWd1WPvRcU5N6Qg6TntKKgdtcTDL+l083oSi4\nziyQMXEkJE9/G/63V4l7hj5Vm2I9hZRoRSCP/yQbTmlOwxAWeH9aqnhk0a/C82Y0\nWa5av019NC9cWCu0uEwx5QfMivqrQGU4w9XZwtNlxJsl6o3f5ZyVewKTAR7s8m8e\nK3kep5Tv7lGsUWGXNOpPAreEuPKqKPH0VSzYVKF7l9iv9viZalyZRgf8z3odhrOl\n3JYkT44i1G3jyohC/f+ea8zYILpRzG1kIQIDAQAB\n-----END RSA PUBLIC KEY-----\n'
     pubkey = rsa.PublicKey.load_pkcs1(pk)
     SECMSG = SEC.encode('utf-8')
     encrypt =  rsa.encrypt(SECMSG, pubkey)
     encrypt = base64.b64encode(encrypt).decode('ascii')
     return encrypt, SEC
-
 
 
 #def GetPublickey():
@@ -135,6 +136,6 @@ def SendUserKey(req_user, conn, cursor):
     if(len(key)==0):
         return False
     else:
-        return key[0]
+        return key[0][2:-1].encode("ASCII")
 
 

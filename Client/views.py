@@ -51,6 +51,7 @@ def testAuth():
     r = requests.post("http://bus-e2e-communicator-server-1:6060/verify", data=json.dumps(pack), headers=headers)
     return r.text
 
+
 @views.route("/getUsername")
 def testUsername():
     user = controller.LoadPrivateKey()

@@ -61,6 +61,7 @@ def auth():
     ENC_.append(c)
     return str(encrypt) #encrypt
 
+
 @app.route("/verify", methods=["POST"])
 def verify():
     content = request.get_json()

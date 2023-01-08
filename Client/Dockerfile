@@ -11,4 +11,4 @@ RUN pip3 install -r requirements.txt
 COPY . .
 EXPOSE ${OPEN_PORT}
 
-CMD python3 -m flask run --host=0.0.0.0 --port=${OPEN_PORT} 
+CMD python3 -u -m flask run --host=0.0.0.0 --port=${OPEN_PORT} 
