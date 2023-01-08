@@ -92,18 +92,14 @@ def AuthTaskGeneration(user, conn, cursor):
     pk = None
     characters = string.digits + string.ascii_letters + string.punctuation
     SEC = ''.join(random.choice(characters) for i in range(128))
-    cursor.execute("SELECT * from Users WHERE username= %(login)s", {'login': user})
-    conn.commit()
-    data = cursor.fetchall()
-    if(len(data) == 1):
-        pk = data[0][2]
-        pubkey = rsa.PublicKey.load_pkcs1(pk)
-        SECMSG = SEC.encode('utf-8')
-        encrypt =  rsa.encrypt(SECMSG, pubkey)
-        encrypt = base64.b64encode(encrypt).decode('ascii')
-        return encrypt, SEC
-    else:
-        return False, False
+    pk = SendUserKey(user, conn, cursor)
+    
+    pubkey = rsa.PublicKey.load_pkcs1(pk)
+    SECMSG = SEC.encode('utf-8')
+    encrypt =  rsa.encrypt(SECMSG, pubkey)
+    encrypt = base64.b64encode(encrypt).decode('ascii')
+    return encrypt, SEC
+
 
 
 #def GetPublickey():
@@ -135,10 +131,10 @@ def SaveMsgToDB(senderid, receiver, part, msg, conn, cursor):
 def SendUserKey(req_user, conn, cursor):
     cursor.execute("SELECT PublicKey from Users WHERE username= %(r_user)s", {'r_user': req_user})
     conn.commit()
-    key=cursor.fetchall()
+    key=cursor.fetchone() #fetchall returns a list of results
     if(len(key)==0):
         return False
     else:
-        return key
+        return key[0]
 
 

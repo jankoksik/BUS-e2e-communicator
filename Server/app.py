@@ -48,20 +48,15 @@ def RegisterPage():
 def getPublicKey():
     return str(server.getPubKey().save_pkcs1().decode('utf8'))
 
-@app.route("/prvkey", methods=["POST"])
-def getPrivateKey():
-    return str(server.getPrvKey().save_pkcs1().decode('utf8'))
-
 
 #Get username of user that whant to authenticate
 @app.route("/authRequest", methods=["POST"])
 def auth():
     content = request.get_json()
     username = content['username']
-    encrypt, sec = controller.AuthTaskGeneration(username, conn, cursor)
+    encrypt, sec = controller.AuthTaskGeneration(username , conn, cursor)
     if sec == False: 
         return str(False) 
-    
     c = tokenz.token(encrypt, sec)
     ENC_.append(c)
     return str(encrypt) #encrypt
@@ -100,6 +95,7 @@ def getUserPublicKey():
     req_user = content['req_user']
     key=controller.SendUserKey(req_user, conn, cursor)
     return str(key)
+
 
 @app.route("/testMSG", methods=["POST"])
 def testMSG():

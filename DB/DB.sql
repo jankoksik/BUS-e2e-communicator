@@ -20,7 +20,7 @@ CREATE TABLE `MSG` (
 CREATE TABLE `Users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(32) NOT NULL,
-  `PublicKey` varchar(2048) NOT NULL,
+  `PublicKey` varchar(3000) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
