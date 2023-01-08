@@ -32,7 +32,7 @@ server = controller.SavePrivateAndSendPublicKey(privKey, pubKey,conn, cursor)
 ENC_ = []
 
 
-server = None
+#server = None
 
 
 @app.route("/register", methods=["POST"])
@@ -46,8 +46,11 @@ def RegisterPage():
 
 @app.route("/pubkey", methods=["POST"])
 def getPublicKey():
-    publicKeyPkcs1PEM = pubKey.save_pkcs1().decode('utf8') 
-    return str(publicKeyPkcs1PEM)
+    return str(server.getPubKey().save_pkcs1().decode('utf8'))
+
+@app.route("/prvkey", methods=["POST"])
+def getPrivateKey():
+    return str(server.getPrvKey().save_pkcs1().decode('utf8'))
 
 
 #Get username of user that whant to authenticate
@@ -102,8 +105,20 @@ def getUserPublicKey():
 def testMSG():
     content = request.get_json()
     msg = content['msg']
-    return str(msg) + " : " + controller.getPrivateKeyString()
-    return controller.Decrypt(msg)
+    #value = {
+    #    "msg": str(msg.encode),
+    #    "pubkey": str(server.getPubKey().save_pkcs1('PEM')),
+    #    "prvkey": str(server.getPrvKey().save_pkcs1('PEM'))
+    #}
+    #return json.dumps(value)
+    #return str(msg.encode) + " : " + str(server.getPrvKey().save_pkcs1('PEM')) + ":" + str(server.getPubKey().save_pkcs1('PEM'))
+    return controller.Decrypt(msg, server.getPrvKey())
+
+#@app.route("/testpriv", methods=["GET"])
+#def getprivatekey():
+    return controller.LoadPrivateKey() + ":" 
+    #return str(msg) + " : " + controller.getPrivateKeyString()
+    #return controller.Decrypt(msg)
 
 if __name__ == '__main__':
     app.run(debug=True)
