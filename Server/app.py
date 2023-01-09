@@ -66,9 +66,9 @@ def auth():
 def verify():
     content = request.get_json()
     enc = content['ENC']
-    dec = controller.Decrypt(content['SEC'])
+    dec = controller.Decrypt(content['SEC'], server.getPrvKey())
 
-    for token in enc:
+    for token in ENC_:
         if not token.isExpired():
             if token.getEnc() == enc:
                 if token.getSec() == dec:

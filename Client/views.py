@@ -39,13 +39,12 @@ def testAuth():
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     x = requests.post("http://bus-e2e-communicator-server-1:6060/authRequest", data=json.dumps(pack), headers=headers)
     secret = x.text
-    msg = rsa.decrypt(bytes(secret, encoding='utf-8'),user.getKey()).decode('utf-8')
+    msg = rsa.decrypt(base64.b64decode(secret),user.getKey())
     p = requests.post("http://bus-e2e-communicator-server-1:6060/pubkey")
     ServerPublicKey = bytes(p.text, encoding='utf-8')
-    pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey)
-    SECMSG = msg.encode('utf-8')
-    encrypt =  rsa.encrypt(SECMSG, pubkey)
-
+    pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey,'PEM')
+    encrypt =  rsa.encrypt(msg, pubkey)
+    encrypt = base64.b64encode(encrypt).decode('ascii')
     pack = {'ENC': str(secret), 'SEC' : str(encrypt)}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     r = requests.post("http://bus-e2e-communicator-server-1:6060/verify", data=json.dumps(pack), headers=headers)

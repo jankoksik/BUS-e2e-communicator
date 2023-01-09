@@ -86,7 +86,6 @@ def SaveDataToDB(username,key,conn, cursor):
         cursor.execute("INSERT INTO Users (username, PublicKey) VALUES ( %(u)s,%(p)s)", {'u': username, 'p':key})
         conn.commit()
 
-
 # returns unencrypted and encrypted secret
 def AuthTaskGeneration(user, conn, cursor):
     pk = None
