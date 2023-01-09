@@ -1,6 +1,7 @@
 import json
 from flask import Blueprint, render_template, request
 import requests
+from chat import chat
 import controller
 import rsa
 import base64
@@ -10,6 +11,24 @@ views = Blueprint(__name__, "views")
 @views.route("/")
 def MainPage():
     return render_template("index.html")
+
+@views.route("/chatTest")
+def chatTest():
+    chats = []
+
+    chat1 = chat("user1")
+    chat1.setActive(True)
+    chat1.setLastMsg("test msg 1")
+    chat1.setNewMsgCount(1)
+    chats.append(chat1)
+    chat2 = chat("user2")
+    chat2.setLastMsg("test msg 2")
+    chats.append(chat2)
+    chat3 = chat("user3")
+    chat3.setLastMsg("test msg 3")
+    chat3.setNewMsgCount(5)
+    chats.append(chat3)
+    return render_template("chat.html", chats = chats)
 
 @views.route("/register")
 def RegisterPage():
