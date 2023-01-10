@@ -11,6 +11,6 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 COPY . .
 EXPOSE ${OPEN_PORT}
-RUN  find . -name "*.py" -type f -print0 | xargs -0 -n 1 -P 4 dos2unix 
+RUN  dos2unix *.py
 CMD python3 -u -m flask run --host=0.0.0.0 --port=${OPEN_PORT} 
 

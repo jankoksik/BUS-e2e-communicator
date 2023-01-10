@@ -9,9 +9,10 @@ SET NAMES utf8mb4;
 
 CREATE TABLE `MSG` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sender` int(11) NOT NULL,
-  `to` varchar(32) NOT NULL,
-  `participants` varchar(32) NOT NULL,
+  `sender` varchar(32) NOT NULL,
+  `reciver` varchar(32) NOT NULL,
+  `encoded_to` varchar(32)  NOT NULL,
+  `send_time` datetime NOT NULL,
   `msg` varchar(32) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

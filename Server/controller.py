@@ -86,6 +86,22 @@ def SaveDataToDB(username,key,conn, cursor):
         cursor.execute("INSERT INTO Users (username, PublicKey) VALUES ( %(u)s,%(p)s)", {'u': username, 'p':key})
         conn.commit()
 
+#nie testowane
+def DownloadLastMsgs(username,conn, cursor):
+    cursor.execute("SELECT reciver, sender, encoded_to, msg, send_time \
+    FROM \
+     (SELECT reciver, sender, encoded_to, msg, send_time,  \
+                  @msg_rank := IF(@current_sender = sender, @msg_rank + 1, 1) AS msg_rank, \
+                  @current_sender := sender  \
+       FROM MSG \
+       ORDER BY sender, send_time DESC \
+     ) ranked \
+    WHERE (reciver =  %(u)s OR sender= %(u)s) AND msg_rank <= 1;", {'u': username}) 
+    conn.commit()
+    data = cursor.fetchall()
+    return data
+
+
 # returns unencrypted and encrypted secret
 def AuthTaskGeneration(user, conn, cursor):
     pk = None

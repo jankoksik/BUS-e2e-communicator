@@ -1,3 +1,4 @@
+import collections
 from flask import Flask, render_template, flash, request, redirect
 from time import sleep
 from flaskext.mysql import MySQL
@@ -57,7 +58,7 @@ def auth():
     encrypt, sec = controller.AuthTaskGeneration(username , conn, cursor)
     if sec == False: 
         return str(False) 
-    c = tokenz.token(encrypt, sec)
+    c = tokenz.token(encrypt, sec, username)
     ENC_.append(c)
     return str(encrypt) #encrypt
 
@@ -65,15 +66,47 @@ def auth():
 @app.route("/verify", methods=["POST"])
 def verify():
     content = request.get_json()
+    username = content['username']
     enc = content['ENC']
     dec = controller.Decrypt(content['SEC'], server.getPrvKey())
 
     for token in ENC_:
         if not token.isExpired():
-            if token.getEnc() == enc:
+            if token.getEnc() == enc and token.getUsername() == username :
                 if token.getSec() == dec:
                     ENC_.remove(token)
                     return str(True)
+        else:
+            ENC_.remove(token)
+    return str(False)
+
+
+#test function not completed yet
+@app.route("/DownloadLastMsgs", methods=["POST"])
+def Download():
+    content = request.get_json()
+    username = content['username']
+    enc = content['ENC']
+    dec = controller.Decrypt(content['SEC'], server.getPrvKey())
+
+    for token in ENC_:
+        if not token.isExpired() :
+            if token.getEnc() == enc and token.getUsername() == username :
+                if token.getSec() == dec:
+                    ENC_.remove(token)
+                    #download msg's
+                    lastMsgs = controller.DownloadLastMsgs(username , conn, cursor)
+                    objects_list = []
+                    for c in lastMsgs:
+                        d = collections.OrderedDict()
+                        #to, sender, encoded_to, msg, time
+                        d["reciver"] = c[0]
+                        d["sender"] = c[1]
+                        d["encoded_to"] = c[2]
+                        d["msg"] = c[3]
+                        d["send_time"] = c[4]
+                        objects_list.append(d)
+                    return json.dumps(objects_list,  default=str)
         else:
             ENC_.remove(token)
     return str(False)

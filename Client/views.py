@@ -51,7 +51,7 @@ def authorize():
     except:
         return str(False)
 
-@views.route("/authTest")
+@views.route("/DownloadLastMsgs")
 def testAuth():
     user = controller.LoadPrivateKey()
     pack = {'username': str(user.getUsername())}
@@ -64,9 +64,9 @@ def testAuth():
     pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey,'PEM')
     encrypt =  rsa.encrypt(msg, pubkey)
     encrypt = base64.b64encode(encrypt).decode('ascii')
-    pack = {'ENC': str(secret), 'SEC' : str(encrypt)}
+    pack = {'ENC': str(secret), 'SEC' : str(encrypt), 'username' : str(user.getUsername())}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    r = requests.post("http://bus-e2e-communicator-server-1:6060/verify", data=json.dumps(pack), headers=headers)
+    r = requests.post("http://bus-e2e-communicator-server-1:6060/DownloadLastMsgs", data=json.dumps(pack), headers=headers)
     return r.text
 
 
