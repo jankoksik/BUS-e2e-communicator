@@ -119,12 +119,13 @@ def Download():
 @app.route("/send", methods=["POST"])
 def SenderPage():
     content = request.get_json()
-    senderid = content['senderid']
+    sender = content['sender']
     receiver = content['receiver']
-    participants = content['participants']
+    encoded_to = content['encoded_to']
+    send_time = content['send_time']
     msg = content['msg']
-    controller.SaveMsgToDB(senderid, receiver, participants, msg, conn, cursor)
-    return str(senderid)
+    controller.SaveMsgToDB(sender, receiver, encoded_to,send_time, msg, conn, cursor)
+    return str(sender)
 
 @app.route("/usrpubkey", methods=["POST"])
 def getUserPublicKey():

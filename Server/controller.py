@@ -33,6 +33,7 @@ def GenerateKeys():
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
     path = './key/'
+    SERV = None
 #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
@@ -151,8 +152,8 @@ def Decrypt(text, prvkey):
 #def getPrivateKeyString():
     return LoadPrivateKey().getKey().save_pkcs1().decode('utf8') 
 
-def SaveMsgToDB(senderid, receiver, part, msg, conn, cursor):
-        cursor.execute("INSERT INTO MSG (sender, to, participants, msg) VALUES ( %(sid)s,%(r)s,%(p)s,%(m)s)", {'sid': senderid, 't':receiver, 'p':part, 'm':msg})
+def SaveMsgToDB(sender, receiver, encoded_to, send_time, msg, conn, cursor):
+        cursor.execute("INSERT INTO MSG (sender, reciver, encoded_to, send_time, msg, Opened) VALUES ( %(send)s,%(r)s,%(ento)s,%(time)s,%(m)s,0)", {'send': sender, 'r':receiver, 'ento':encoded_to, 'time':send_time, 'm':msg})
         conn.commit()
 
 def SendUserKey(req_user, conn, cursor):

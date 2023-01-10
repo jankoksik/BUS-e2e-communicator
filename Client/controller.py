@@ -3,6 +3,7 @@ import os
 import requests
 import pickle
 import json
+from time import gmtime, strftime
 
 #1. sprawdź czy masz konto
 #jeśli nie to wygeneruj konto: losowanie nazwy usera, wpisywanie hasła, OTP, generacja kluczy, wysłanie do serwera
@@ -67,13 +68,14 @@ def RequestUserKey(req_user):
     print(x.text)
     return x.text
 
-def SendMsg(userid, receiver, participants, msg):
+def SendMsg(sender, receiver, encoded_to, msg):
     url = 'http://bus-e2e-communicator-server-1:6060/send'
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    send_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
     key = RequestUserKey(receiver)
     msg = msg.encode('utf-8')
     encrypt =  rsa.encrypt(msg, key)
-    data = {'userid': userid, 'receiver': str(receiver), 'participants': str(participants), 'msg':str(encrypt)}
+    data = {'sender': str(sender), 'receiver': str(receiver), 'encoded_to': str(encoded_to), 'send_time': send_time, 'msg':str(encrypt), 'Opened': 0}
     x = requests.post(url, data=json.dumps(data), headers=headers)
     print(x.text)
     return x.text
@@ -83,3 +85,12 @@ def ReceiveMsg(msg):
     decrypt = rsa.decrypt(msg, key)
     print(decrypt.decode('utf-8'))
     return decrypt.decode('utf-8')
+
+def SendMsgTest(sender, receiver, encoded_to, msg):
+    url = 'http://bus-e2e-communicator-server-1:6060/send'
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    send_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    data = {'sender': str(sender), 'receiver': str(receiver), 'encoded_to': str(encoded_to), 'send_time': send_time, 'msg':str(msg), 'Opened': 0}
+    x = requests.post(url, data=json.dumps(data), headers=headers)
+    print(x.text)
+    return x.text
