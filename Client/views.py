@@ -75,17 +75,29 @@ def chatz():
     chats = []
     jlm = json.loads(LastMsg())
     username = testUsername()
+    ChoosedChat = request.args.get('chch')
+    if not ChoosedChat is None:
+        x = ChoosedChat.split("-")
+        ChoosedChat = x[0] + "#" + x[1]
     for c in jlm :
         chati = None
         if not c["reciver"] == username:
             chati = chat(c["reciver"])
         elif not c["sender"] == username:
              chati = chat(c["sender"])
-        chati.setLastMsg(c["msg"])
+        if not ChoosedChat is None and  chati.getName() == ChoosedChat:
+            chati.setActive(True)
+        if len(c["msg"]) > 12:
+             chati.setLastMsg(c["msg"][:12]+"...")
+        else : 
+            chati.setLastMsg(c["msg"])
         chati.setLastMsgDate(datetime.strptime(c["send_time"], '%Y-%m-%d %H:%M:%S'))
+        if not c["Opened"] :
+            chati.setNewMsg(True)
         chats.append(chati)
-    if len(chats)>0:
+    if len(chats)>0 and ChoosedChat is None:
         chats[0].setActive(True)
+        
     return render_template("chat.html", chats = chats)
 
 @views.route("/getUsername")

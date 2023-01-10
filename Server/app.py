@@ -99,12 +99,13 @@ def Download():
                     objects_list = []
                     for c in lastMsgs:
                         d = collections.OrderedDict()
-                        #to, sender, encoded_to, msg, time
+                        #to, sender, encoded_to, msg, time, Opened
                         d["reciver"] = c[0]
                         d["sender"] = c[1]
                         d["encoded_to"] = c[2]
                         d["msg"] = c[3]
                         d["send_time"] = c[4]
+                        d["Opened"] = c[5]
                         objects_list.append(d)
                     return json.dumps(objects_list,  default=str)
         else:

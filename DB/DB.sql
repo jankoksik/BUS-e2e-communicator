@@ -13,7 +13,7 @@ CREATE TABLE `MSG` (
   `reciver` varchar(32) NOT NULL,
   `encoded_to` varchar(32)  NOT NULL,
   `send_time` datetime NOT NULL,
-  `msg` varchar(32) NOT NULL,
+  `msg` varchar(3000) NOT NULL,
   `Opened` BOOLEAN Not NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -23,7 +23,6 @@ CREATE TABLE `Users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(32) NOT NULL,
   `PublicKey` varchar(3000) NOT NULL,
-  `AvatarUrl` VARCHAR(400) Not NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

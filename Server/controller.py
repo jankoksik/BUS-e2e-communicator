@@ -24,7 +24,7 @@ class Server:
     def setPrvKey(self, prvkey):
         self._prvkey = prvkey
 
-#SERV = None
+SERV = None
 #returns new privatekey, publickey
 def GenerateKeys(): 
     #key specs
@@ -86,11 +86,10 @@ def SaveDataToDB(username,key,conn, cursor):
         cursor.execute("INSERT INTO Users (username, PublicKey) VALUES ( %(u)s,%(p)s)", {'u': username, 'p':key})
         conn.commit()
 
-#nie testowane
 def DownloadLastMsgs(username,conn, cursor):
-    cursor.execute("SELECT reciver, sender, encoded_to, msg, send_time \
+    cursor.execute("SELECT reciver, sender, encoded_to, msg, send_time, Opened \
     FROM \
-     (SELECT reciver, sender, encoded_to, msg, send_time,  \
+     (SELECT reciver, sender, encoded_to, msg, send_time, Opened,  \
                   @msg_rank := IF(@current_sender = sender, @msg_rank + 1, 1) AS msg_rank, \
                   @current_sender := sender  \
        FROM MSG \
@@ -101,6 +100,16 @@ def DownloadLastMsgs(username,conn, cursor):
     data = cursor.fetchall()
     return data
 
+
+def DownloadMsgs(owner, sender,key,conn, cursor):
+    cursor.execute("SELECT reciver, sender, encoded_to, msg, send_time, Opened \
+    FROM MSG \
+    ORDER BY send_time DESC \
+    WHERE ((reciver =  %(o)s AND sender= %(s)s) OR (reciver =  %(s)s AND sender= %(o)s)) AND encoded_to = %(u)s \
+    LIMIT 10;", {'o': owner, 's':sender}) 
+    conn.commit()
+    data = cursor.fetchall()
+    return data
 
 # returns unencrypted and encrypted secret
 def AuthTaskGeneration(user, conn, cursor):

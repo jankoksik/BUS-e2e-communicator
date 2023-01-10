@@ -6,13 +6,17 @@ class chat:
         self.Name = name
         self.LastMsg = ""
         self.LastMsgDate = datetime.datetime.now()
-        self.NewMsgCount = 0
+        self.NewMsg = False
     
     def getActive(self):
         return self.Active
 
     def getName(self):
         return self.Name
+
+    def getNameHTML(self):
+        x = self.Name.split("#")
+        return x[0]+"-"+x[1]
     
     def getLastMsg(self):
         return self.LastMsg
@@ -20,8 +24,8 @@ class chat:
     def getLastMsgDate(self):
         return self.LastMsgDate.strftime("%d %b %Y %H:%M")
 
-    def getNewMsgCount(self):
-        return self.NewMsgCount
+    def getNewMsg(self):
+        return self.NewMsg
 
     def setActive(self, Active:bool):
         self.Active = Active
@@ -35,7 +39,7 @@ class chat:
     def setLastMsgDate(self, LastMsgDate:datetime ):
         self.LastMsgDate = LastMsgDate
 
-    def setNewMsgCount(self, NewMsgCount:int ):
-         self.NewMsgCount = NewMsgCount
+    def setNewMsg(self, NewMsg:bool ):
+         self.NewMsg = NewMsg
 
     
