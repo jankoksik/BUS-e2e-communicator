@@ -103,11 +103,12 @@ def DownloadLastMsgs(username,conn, cursor):
 
 
 def DownloadMsgs(owner, sender,key,conn, cursor):
-    cursor.execute("SELECT reciver, sender, encoded_to, msg, send_time, Opened \
-    FROM MSG \
-    ORDER BY send_time DESC \
-    WHERE ((reciver =  %(o)s AND sender= %(s)s) OR (reciver =  %(s)s AND sender= %(o)s)) AND encoded_to = %(u)s \
-    LIMIT 10", {'o': owner, 's':sender}) 
+    cursor.execute("""SELECT reciver, sender, encoded_to, msg, send_time, Opened 
+    FROM MSG 
+    ORDER BY send_time DESC 
+    WHERE ((reciver =  %(o)s AND sender= %(s)s) OR (reciver =  %(s)s AND sender= %(o)s)) AND encoded_to = %(u)s 
+    LIMIT 10""", {'o': owner, 's':sender}) 
+
     #dodać zmianę zaczerpniętych wiadomości z Opened 0 -> 1
     data = cursor.fetchall()
     return data
