@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from flask import Blueprint, render_template, request
 import requests
@@ -52,7 +53,7 @@ def authorize():
         return str(False)
 
 @views.route("/DownloadLastMsgs")
-def testAuth():
+def LastMsg():
     user = controller.LoadPrivateKey()
     pack = {'username': str(user.getUsername())}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
@@ -69,6 +70,23 @@ def testAuth():
     r = requests.post("http://bus-e2e-communicator-server-1:6060/DownloadLastMsgs", data=json.dumps(pack), headers=headers)
     return r.text
 
+@views.route("/chat")
+def chatz():
+    chats = []
+    jlm = json.loads(LastMsg())
+    username = testUsername()
+    for c in jlm :
+        chati = None
+        if not c["reciver"] == username:
+            chati = chat(c["reciver"])
+        elif not c["sender"] == username:
+             chati = chat(c["sender"])
+        chati.setLastMsg(c["msg"])
+        chati.setLastMsgDate(datetime.strptime(c["send_time"], '%Y-%m-%d %H:%M:%S'))
+        chats.append(chati)
+    if len(chats)>0:
+        chats[0].setActive(True)
+    return render_template("chat.html", chats = chats)
 
 @views.route("/getUsername")
 def testUsername():

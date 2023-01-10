@@ -24,7 +24,7 @@ class Server:
     def setPrvKey(self, prvkey):
         self._prvkey = prvkey
 
-SERV = None
+#SERV = None
 #returns new privatekey, publickey
 def GenerateKeys(): 
     #key specs
@@ -96,7 +96,7 @@ def DownloadLastMsgs(username,conn, cursor):
        FROM MSG \
        ORDER BY sender, send_time DESC \
      ) ranked \
-    WHERE (reciver =  %(u)s OR sender= %(u)s) AND msg_rank <= 1;", {'u': username}) 
+    WHERE (reciver =  %(u)s OR sender= %(u)s) AND encoded_to = %(u)s  AND msg_rank <= 1;", {'u': username}) 
     conn.commit()
     data = cursor.fetchall()
     return data
