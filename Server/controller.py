@@ -87,17 +87,18 @@ def SaveDataToDB(username,key,conn, cursor):
         conn.commit()
 
 def DownloadLastMsgs(username,conn, cursor):
-    cursor.execute("SELECT reciver, sender, encoded_to, msg, send_time, Opened \
-    FROM \
-     (SELECT reciver, sender, encoded_to, msg, send_time, Opened,  \
-                  @msg_rank := IF(@current_sender = sender, @msg_rank + 1, 1) AS msg_rank, \
-                  @current_sender := sender  \
-       FROM MSG \
-       ORDER BY sender, send_time DESC \
-     ) ranked \
-    WHERE (reciver =  %(u)s OR sender= %(u)s) AND encoded_to = %(u)s  AND msg_rank <= 1;", {'u': username}) 
-    conn.commit()
+    cursor.execute("SET @msg_rank = 0")
+    cursor.execute("""SELECT reciver, sender, encoded_to, msg, send_time, Opened 
+    FROM 
+     (SELECT reciver, sender, encoded_to, msg, send_time, Opened,  
+                  @msg_rank := IF(@current_sender = sender, @msg_rank + 1, 1) AS msg_rank, 
+                  @current_sender := sender  
+       FROM MSG 
+       ORDER BY sender, send_time DESC 
+     ) ranked 
+    WHERE (reciver =  %(u)s OR sender= %(u)s) AND encoded_to = %(u)s  AND msg_rank <= 1""", {'u': username}) 
     data = cursor.fetchall()
+    print(data)
     return data
 
 
@@ -106,8 +107,8 @@ def DownloadMsgs(owner, sender,key,conn, cursor):
     FROM MSG \
     ORDER BY send_time DESC \
     WHERE ((reciver =  %(o)s AND sender= %(s)s) OR (reciver =  %(s)s AND sender= %(o)s)) AND encoded_to = %(u)s \
-    LIMIT 10;", {'o': owner, 's':sender}) 
-    conn.commit()
+    LIMIT 10", {'o': owner, 's':sender}) 
+    #dodać zmianę zaczerpniętych wiadomości z Opened 0 -> 1
     data = cursor.fetchall()
     return data
 

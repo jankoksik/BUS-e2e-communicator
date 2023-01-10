@@ -107,9 +107,11 @@ def Download():
                         d["send_time"] = c[4]
                         d["Opened"] = c[5]
                         objects_list.append(d)
+                    print("AUTH OK ")
                     return json.dumps(objects_list,  default=str)
         else:
             ENC_.remove(token)
+    print("AUTH FAILED")
     return str(False)
     
 

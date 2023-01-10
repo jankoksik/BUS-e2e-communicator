@@ -68,6 +68,7 @@ def LastMsg():
     pack = {'ENC': str(secret), 'SEC' : str(encrypt), 'username' : str(user.getUsername())}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     r = requests.post("http://bus-e2e-communicator-server-1:6060/DownloadLastMsgs", data=json.dumps(pack), headers=headers)
+    print(r.text)
     return r.text
 
 @views.route("/chat")
@@ -79,6 +80,7 @@ def chatz():
     if not ChoosedChat is None:
         x = ChoosedChat.split("-")
         ChoosedChat = x[0] + "#" + x[1]
+        print("trying to read chat with " , ChoosedChat)
     for c in jlm :
         chati = None
         if not c["reciver"] == username:
