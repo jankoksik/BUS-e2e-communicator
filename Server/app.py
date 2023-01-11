@@ -139,8 +139,8 @@ def DownloadMSG():
                         d = collections.OrderedDict()
                         #id, reciver, sender, encoded_to, msg, send_time, Opened 
                         d["id"] = c[0]
-                        d["reciver"] = c[1]
-                        d["sender"] = c[2]
+                        d["sender"] = c[1]
+                        d["reciver"] = c[2]
                         d["encoded_to"] = c[3]
                         d["send_time"] = c[4]
                         d["msg"] = c[5]
@@ -172,6 +172,32 @@ def getUserPublicKey():
     key=controller.SendUserKey(req_user, conn, cursor)
     return str(key)
 
+@app.route("/MSG", methods=["POST"])
+def MSG():
+    content = request.get_json()
+    username = content['username']
+    participant = content['participant']
+    msg = content['msg'] # to em
+    msg2 = content['msg2'] #to self
+    enc = content['ENC']
+    dec = controller.Decrypt(content['SEC'], server.getPrvKey())
+    for token in ENC_:
+        if not token.isExpired() :
+            if token.getEnc() == enc and token.getUsername() == username :
+                if token.getSec() == dec:
+                    ENC_.remove(token)
+                    # auth ok
+                    print("Sending : AUTH OK ")
+                    #send to self
+                    controller.SaveMsgToDB(username, participant, username, msg2, 1 ,conn, cursor)
+                    #send to em
+                    controller.SaveMsgToDB(username, participant, participant, msg, 0 ,conn, cursor)
+
+                    return str(True)
+        else:
+            ENC_.remove(token)
+    print("Sending : AUTH FAILED")
+    return str(False)
 
 @app.route("/testMSG", methods=["POST"])
 def testMSG():

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import random
 import string
 import rsa
@@ -79,7 +80,7 @@ def DownloadLastMsgs(username,conn, cursor):
     cursor.execute("""SELECT * FROM MSG 
 WHERE id IN (
     SELECT MAX(id) AS last_msg_id 
-    FROM MSG WHERE reciver= %(u)s OR sender =%(u)s 
+    FROM MSG WHERE (reciver= %(u)s OR sender =%(u)s) AND encoded_to = %(u)s 
     GROUP BY IF(sender = %(u)s, reciver, sender)
 )""", {'u': username}) 
     data = cursor.fetchall()
@@ -109,7 +110,7 @@ def AuthTaskGeneration(user, conn, cursor):
     characters = string.digits + string.ascii_letters + string.punctuation
     SEC = ''.join(random.choice(characters) for i in range(128))
     pk = SendUserKey(user, conn, cursor)
-    pk = pk.replace(b'\\n', b'\n').decode('ascii')
+    #pk = pk.replace(b'\\n', b'\n').decode('ascii')
     print(type(pk), pk)
     #key = b'-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAwC9NK0yGvK4Y3CazjBaXysRMNxd6oD0RJQfCrAODFF2+yS6Fn5Xb\nrhL+ZB7bUwFh/3gX0EBmRf+Sq96JWd1WPvRcU5N6Qg6TntKKgdtcTDL+l083oSi4\nziyQMXEkJE9/G/63V4l7hj5Vm2I9hZRoRSCP/yQbTmlOwxAWeH9aqnhk0a/C82Y0\nWa5av019NC9cWCu0uEwx5QfMivqrQGU4w9XZwtNlxJsl6o3f5ZyVewKTAR7s8m8e\nK3kep5Tv7lGsUWGXNOpPAreEuPKqKPH0VSzYVKF7l9iv9viZalyZRgf8z3odhrOl\n3JYkT44i1G3jyohC/f+ea8zYILpRzG1kIQIDAQAB\n-----END RSA PUBLIC KEY-----\n'
     pubkey = rsa.PublicKey.load_pkcs1(pk)
@@ -124,17 +125,20 @@ def Decrypt(text, prvkey):
     #msg = rsa.decrypt(bytes(text, encoding='utf-8'), prvkey)
     return msg.decode('utf-8')
 
-def SaveMsgToDB(senderid, receiver, part, msg, conn, cursor):
-        cursor.execute("INSERT INTO MSG (sender, to, participants, msg) VALUES ( %(sid)s,%(r)s,%(p)s,%(m)s)", {'sid': senderid, 't':receiver, 'p':part, 'm':msg})
-        conn.commit()
+def SaveMsgToDB(sender, receiver, encoded_to,msg, opened,conn, cursor):
+    #id	sender	reciver	encoded_to	send_time	msg	Opened
+        time = (datetime.utcnow()+timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute("INSERT INTO MSG (sender, reciver, encoded_to, send_time, msg, Opened) VALUES ( %(sender)s,%(reciver)s,%(encoded_to)s, %(send_time)s,%(msg)s,%(Opened)s)", {'sender':sender, 'reciver':receiver, 'encoded_to':encoded_to, 'send_time':time, 'msg':msg, 'Opened':opened})
+        conn.commit() 
 
 def SendUserKey(req_user, conn, cursor):
-    cursor.execute("SELECT PublicKey from Users WHERE username= %(r_user)s", {'r_user': req_user})
-    conn.commit()
+    cursor.execute("SELECT PublicKey FROM Users WHERE username= %(r_user)s", {'r_user': req_user})
     key=cursor.fetchone() #fetchall returns a list of results
-    if(len(key)==0):
+    print("=== KEY ===")
+    print(key)
+    if key is None or (len(key)==0):
         return False
     else:
-        return key[0][2:-1].encode("ASCII")
+        return (key[0][2:-1].encode("ASCII")).replace(b'\\n', b'\n').decode('ascii')
 
 

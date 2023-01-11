@@ -78,32 +78,71 @@ def DownMsg(participant:str, page:int):
 def chatz():
     chats = []
     Msgs = []
-    jlm = json.loads(LastMsg())
     username = testUsername()
+    user = controller.LoadPrivateKey()
     ChoosedChat = request.args.get('chch')
-    
-
-    if request.method == "POST":
-        #send msg
-        data = request.form.get('msgBox')
-        print("===== REQ =====")
-        print(request)
-        print(data)
-
-    if not ChoosedChat is None:
+    if not ChoosedChat is None : 
         x = ChoosedChat.split("-")
         ChoosedChat = x[0] + "#" + x[1]
         print("trying to read chat with " , ChoosedChat)
+    
+
+        if request.method == "POST":
+            #send msg
+            data = request.form.get('msgBox')
+            pack = {'req_user': str(ChoosedChat)}
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            p = requests.post("http://bus-e2e-communicator-server-1:6060/usrpubkey", data=json.dumps(pack), headers=headers)
+            ReciverPublicKey = bytes(p.text, encoding='utf-8')
+            pubkey = rsa.PublicKey.load_pkcs1(ReciverPublicKey,'PEM')
+            SECMSG = data.encode('utf-8')
+            encrypt =  rsa.encrypt(SECMSG, pubkey)
+            encrypt1 = base64.b64encode(encrypt).decode('ascii')
+            print("encrypt 1 : ")
+            print(encrypt1)
+            pack = {'req_user': str(username)}
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            p = requests.post("http://bus-e2e-communicator-server-1:6060/usrpubkey", data=json.dumps(pack), headers=headers)
+            ReciverPublicKey = bytes(p.text, encoding='utf-8')
+            pubkey = rsa.PublicKey.load_pkcs1(ReciverPublicKey,'PEM')
+            SECMSG = data.encode('utf-8')
+            encrypt =  rsa.encrypt(SECMSG, pubkey)
+            encrypt2 = base64.b64encode(encrypt).decode('ascii')
+            print("encrypt 2 : ")
+            print(encrypt2)
+            user = controller.LoadPrivateKey()
+            pack = {'username': str(user.getUsername())}
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            x = requests.post("http://bus-e2e-communicator-server-1:6060/authRequest", data=json.dumps(pack), headers=headers)
+            secret = x.text
+            msgz = rsa.decrypt(base64.b64decode(secret),user.getKey())
+            p = requests.post("http://bus-e2e-communicator-server-1:6060/pubkey")
+            ServerPublicKey = bytes(p.text, encoding='utf-8')
+            pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey,'PEM')
+            encrypt =  rsa.encrypt(msgz, pubkey)
+            encrypt = base64.b64encode(encrypt).decode('ascii')
+            #    participant = content['participant'], page = int(content['page'])
+            print("SENDING")
+            pack = {'ENC': str(secret), 'SEC' : str(encrypt), 'username' : str(user.getUsername()), 'participant' : str(ChoosedChat), 'msg':encrypt1, 'msg2':encrypt2}
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            r = requests.post("http://bus-e2e-communicator-server-1:6060/MSG", data=json.dumps(pack), headers=headers)
+
+        
+
+    if not ChoosedChat is None:
         DownMsgs = json.loads(DownMsg(ChoosedChat, 0))
         for m in reversed(DownMsgs):
+            print(m)
             Msg = msg(m["sender"])
             Msg.setDate(datetime.strptime(m["send_time"], '%Y-%m-%d %H:%M:%S'))
-            Msg.setMsg(m["msg"])
+            decodedMsg = rsa.decrypt(base64.b64decode(m["msg"]),user.getKey()).decode('utf-8')
+            Msg.setMsg(decodedMsg)
             if Msg.getName() == username:
                 Msg.setMe(True)
             Msgs.append(Msg)
 
     #Load in last messenges
+    jlm = json.loads(LastMsg())
     for c in reversed(jlm) :
         chati = None
         if not c["reciver"] == username:
@@ -112,16 +151,17 @@ def chatz():
              chati = chat(c["sender"])
         if not ChoosedChat is None and  chati.getName() == ChoosedChat:
             chati.setActive(True)
-        if len(c["msg"]) > 12:
-             chati.setLastMsg(c["msg"][:12]+"...")
+        decodedMsg = rsa.decrypt(base64.b64decode(c["msg"]),user.getKey()).decode('utf-8')
+        if len(decodedMsg) > 12:
+             chati.setLastMsg(decodedMsg[:12]+"...")
         else : 
-            chati.setLastMsg(c["msg"])
+            chati.setLastMsg(decodedMsg)
         chati.setLastMsgDate(datetime.strptime(c["send_time"], '%Y-%m-%d %H:%M:%S'))
         if not c["Opened"] :
             chati.setNewMsg(True)
         chats.append(chati)
 
-    if ChoosedChat is None : 
+    if len(chats)>0 and ChoosedChat is None : 
         return redirect(request.base_url+"?chch="+chats[0].getNameHTML(), code=302)
     # Load msgs
     if len(chats)>0 and ChoosedChat is None:
@@ -132,7 +172,8 @@ def chatz():
         for m in reversed(DownMsgs):
             Msg = msg(m["sender"])
             Msg.setDate(datetime.strptime(m["send_time"], '%Y-%m-%d %H:%M:%S'))
-            Msg.setMsg(m["msg"])
+            decodedMsg = rsa.decrypt(base64.b64decode(m["msg"]),user.getKey()).decode('utf-8')
+            Msg.setMsg(decodedMsg)
             if Msg.getName() == username:
                 Msg.setMe(True)
             Msgs.append(Msg)
