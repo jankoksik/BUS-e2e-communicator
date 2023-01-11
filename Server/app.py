@@ -9,6 +9,7 @@ import requests
 import json
 import os
 import tokenz
+import rsa
 
 #Flask config
 app = Flask(__name__)
@@ -31,9 +32,7 @@ cursor = conn.cursor()
 privKey, pubKey = controller.GenerateKeys()
 server = controller.SavePrivateAndSendPublicKey(privKey, pubKey,conn, cursor)
 ENC_ = []
-
-
-#server = None
+SERV = None
 
 
 @app.route("/register", methods=["POST"])

@@ -24,7 +24,7 @@ class Server:
     def setPrvKey(self, prvkey):
         self._prvkey = prvkey
 
-SERV = None
+#SERV = None
 #returns new privatekey, publickey
 def GenerateKeys(): 
     #key specs
@@ -33,25 +33,19 @@ def GenerateKeys():
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
     path = './key/'
-    SERV = None
+    #SERV = None
 #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
     if not isExist:
         # Create a new directory because it does not exist 
         os.makedirs(path)
-        #with open(path+'key.pickle', 'wb') as handle:
-            #SERV = Server(public_key,private_key)
-            #SERV.setPrvKey(private_key)
-            #SERV.getPubKey(public_key)
-            #pickle.dump(SERV, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            #publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
         SERV = Server(public_key,private_key)
         with open(path+'privatekey.pem', 'wb') as file:
             file.write(private_key.save_pkcs1('PEM'))
         with open(path+'publickey.pem', 'wb') as file:
             file.write(public_key.save_pkcs1('PEM'))
-        SaveDataToDB("SERVER",public_key,conn, cursor)
+        #SaveDataToDB("SERVER",public_key,conn, cursor)
     else:
         #with open(path+'key.pickle', 'rb') as handle:
             #SERV:Server = pickle.load(handle)
