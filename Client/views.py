@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 from flask import Blueprint, render_template, request
 import requests
+from msg import msg
 from chat import chat
 import controller
 import rsa
@@ -12,24 +13,6 @@ views = Blueprint(__name__, "views")
 @views.route("/")
 def MainPage():
     return render_template("index.html")
-
-@views.route("/chatTest")
-def chatTest():
-    chats = []
-
-    chat1 = chat("user1")
-    chat1.setActive(True)
-    chat1.setLastMsg("test msg 1")
-    chat1.setNewMsgCount(1)
-    chats.append(chat1)
-    chat2 = chat("user2")
-    chat2.setLastMsg("test msg 2")
-    chats.append(chat2)
-    chat3 = chat("user3")
-    chat3.setLastMsg("test msg 3")
-    chat3.setNewMsgCount(5)
-    chats.append(chat3)
-    return render_template("chat.html", chats = chats)
 
 @views.route("/register")
 def RegisterPage():
@@ -71,9 +54,29 @@ def LastMsg():
     print(r.text)
     return r.text
 
+def DownMsg(participant:str, page:int):
+    user = controller.LoadPrivateKey()
+    pack = {'username': str(user.getUsername())}
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    x = requests.post("http://bus-e2e-communicator-server-1:6060/authRequest", data=json.dumps(pack), headers=headers)
+    secret = x.text
+    msg = rsa.decrypt(base64.b64decode(secret),user.getKey())
+    p = requests.post("http://bus-e2e-communicator-server-1:6060/pubkey")
+    ServerPublicKey = bytes(p.text, encoding='utf-8')
+    pubkey = rsa.PublicKey.load_pkcs1(ServerPublicKey,'PEM')
+    encrypt =  rsa.encrypt(msg, pubkey)
+    encrypt = base64.b64encode(encrypt).decode('ascii')
+    #    participant = content['participant'], page = int(content['page'])
+    pack = {'ENC': str(secret), 'SEC' : str(encrypt), 'username' : str(user.getUsername()), 'participant' : str(participant), 'page':0}
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    r = requests.post("http://bus-e2e-communicator-server-1:6060/DownloadMsgs", data=json.dumps(pack), headers=headers)
+    print(r.text)
+    return r.text
+
 @views.route("/chat")
 def chatz():
     chats = []
+    Msgs = []
     jlm = json.loads(LastMsg())
     username = testUsername()
     ChoosedChat = request.args.get('chch')
@@ -81,7 +84,17 @@ def chatz():
         x = ChoosedChat.split("-")
         ChoosedChat = x[0] + "#" + x[1]
         print("trying to read chat with " , ChoosedChat)
-    for c in jlm :
+        DownMsgs = json.loads(DownMsg(ChoosedChat, 0))
+        for m in reversed(DownMsgs):
+            Msg = msg(m["sender"])
+            Msg.setDate(datetime.strptime(m["send_time"], '%Y-%m-%d %H:%M:%S'))
+            Msg.setMsg(m["msg"])
+            if Msg.getName() == username:
+                Msg.setMe(True)
+            Msgs.append(Msg)
+
+
+    for c in reversed(jlm) :
         chati = None
         if not c["reciver"] == username:
             chati = chat(c["reciver"])
@@ -97,10 +110,22 @@ def chatz():
         if not c["Opened"] :
             chati.setNewMsg(True)
         chats.append(chati)
+
+
+
     if len(chats)>0 and ChoosedChat is None:
+        ChoosedChat = chats[0].getName()
         chats[0].setActive(True)
-        
-    return render_template("chat.html", chats = chats)
+        print("trying to read chat with " , ChoosedChat)
+        DownMsgs = json.loads(DownMsg(ChoosedChat, 0))
+        for m in reversed(DownMsgs):
+            Msg = msg(m["sender"])
+            Msg.setDate(datetime.strptime(m["send_time"], '%Y-%m-%d %H:%M:%S'))
+            Msg.setMsg(m["msg"])
+            if Msg.getName() == username:
+                Msg.setMe(True)
+            Msgs.append(Msg)
+    return render_template("chat.html", chats = chats, Msgs= Msgs)
 
 @views.route("/getUsername")
 def testUsername():

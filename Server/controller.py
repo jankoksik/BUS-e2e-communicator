@@ -87,30 +87,31 @@ def SaveDataToDB(username,key,conn, cursor):
         conn.commit()
 
 def DownloadLastMsgs(username,conn, cursor):
-    cursor.execute("SET @msg_rank = 0")
-    cursor.execute("""SELECT reciver, sender, encoded_to, msg, send_time, Opened 
-    FROM 
-     (SELECT reciver, sender, encoded_to, msg, send_time, Opened,  
-                  @msg_rank := IF(@current_sender = sender, @msg_rank + 1, 1) AS msg_rank, 
-                  @current_sender := sender  
-       FROM MSG 
-       ORDER BY sender, send_time DESC 
-     ) ranked 
-    WHERE (reciver =  %(u)s OR sender= %(u)s) AND encoded_to = %(u)s  AND msg_rank <= 1""", {'u': username}) 
+    cursor.execute("""SELECT * FROM MSG 
+WHERE id IN (
+    SELECT MAX(id) AS last_msg_id 
+    FROM MSG WHERE reciver= %(u)s OR sender =%(u)s 
+    GROUP BY IF(sender = %(u)s, reciver, sender)
+)""", {'u': username}) 
     data = cursor.fetchall()
     print(data)
     return data
 
-
-def DownloadMsgs(owner, sender,key,conn, cursor):
-    cursor.execute("""SELECT reciver, sender, encoded_to, msg, send_time, Opened 
+#sender means 2nd participant here
+def DownloadMsgs(owner:str, sender:str, page:int ,conn, cursor):
+    p = page*10
+    cursor.execute("""SELECT * 
     FROM MSG 
+    WHERE ((reciver=%(o)s AND sender=%(s)s) OR (reciver=%(s)s AND sender=%(o)s)) AND encoded_to = %(o)s 
     ORDER BY send_time DESC 
-    WHERE ((reciver =  %(o)s AND sender= %(s)s) OR (reciver =  %(s)s AND sender= %(o)s)) AND encoded_to = %(u)s 
-    LIMIT 10""", {'o': owner, 's':sender}) 
-
-    #dodać zmianę zaczerpniętych wiadomości z Opened 0 -> 1
+    LIMIT 10 OFFSET """+str(p), {'o': owner, 's':sender}) 
     data = cursor.fetchall()
+    print("sql ok")
+    for c in data:
+        cursor.execute("""UPDATE MSG
+        SET Opened = 1
+        WHERE id = %(id)s""", {'id': c[0]})
+    print(data)
     return data
 
 # returns unencrypted and encrypted secret
