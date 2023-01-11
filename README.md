@@ -6,7 +6,7 @@
 
 # Installation : 
 1. go to main folder 
-2. run docker-compose up --build
+2. run `docker-compose up --build`
 
 # How to use :
 
