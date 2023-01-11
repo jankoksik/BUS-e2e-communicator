@@ -42,7 +42,7 @@ def RegisterPage():
     username = content['username']
     publicKey = str(content['PubKey'])
     usernameWithHash = controller.GetUsername(username, conn, cursor)
-    controller.SaveDataToDB(usernameWithHash,publicKey, conn, cursor)
+    controller.SaveUserToDB(usernameWithHash,publicKey, conn, cursor)
     return str(usernameWithHash)
 
 @app.route("/pubkey", methods=["POST"])

@@ -1,6 +1,6 @@
 from datetime import datetime
 import json
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request,redirect
 import requests
 from msg import msg
 from chat import chat
@@ -73,13 +73,23 @@ def DownMsg(participant:str, page:int):
     print(r.text)
     return r.text
 
-@views.route("/chat")
+
+@views.route("/chat",methods=["POST","GET"])
 def chatz():
     chats = []
     Msgs = []
     jlm = json.loads(LastMsg())
     username = testUsername()
     ChoosedChat = request.args.get('chch')
+    
+
+    if request.method == "POST":
+        #send msg
+        data = request.form.get('msgBox')
+        print("===== REQ =====")
+        print(request)
+        print(data)
+
     if not ChoosedChat is None:
         x = ChoosedChat.split("-")
         ChoosedChat = x[0] + "#" + x[1]
@@ -93,7 +103,7 @@ def chatz():
                 Msg.setMe(True)
             Msgs.append(Msg)
 
-
+    #Load in last messenges
     for c in reversed(jlm) :
         chati = None
         if not c["reciver"] == username:
@@ -111,8 +121,9 @@ def chatz():
             chati.setNewMsg(True)
         chats.append(chati)
 
-
-
+    if ChoosedChat is None : 
+        return redirect(request.base_url+"?chch="+chats[0].getNameHTML(), code=302)
+    # Load msgs
     if len(chats)>0 and ChoosedChat is None:
         ChoosedChat = chats[0].getName()
         chats[0].setActive(True)

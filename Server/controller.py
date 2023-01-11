@@ -12,8 +12,6 @@ class Server:
         self.username = "SERVER"
         self.pubkey = pubkey
         self.prvkey=prvkey
-    #def __init__(self):
-    #    self.username = "SERVER"
 
     def getPubKey(self):
         return self.pubkey
@@ -24,7 +22,7 @@ class Server:
     def setPrvKey(self, prvkey):
         self._prvkey = prvkey
 
-SERV = None
+
 #returns new privatekey, publickey
 def GenerateKeys(): 
     #key specs
@@ -33,32 +31,23 @@ def GenerateKeys():
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
     path = './key/'
-#Creating directory and saving private key
+    #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
+    SERV = Server(public_key,private_key)
     if not isExist:
         # Create a new directory because it does not exist 
         os.makedirs(path)
-        #with open(path+'key.pickle', 'wb') as handle:
-            #SERV = Server(public_key,private_key)
-            #SERV.setPrvKey(private_key)
-            #SERV.getPubKey(public_key)
-            #pickle.dump(SERV, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            #publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
-        SERV = Server(public_key,private_key)
         with open(path+'privatekey.pem', 'wb') as file:
             file.write(private_key.save_pkcs1('PEM'))
         with open(path+'publickey.pem', 'wb') as file:
             file.write(public_key.save_pkcs1('PEM'))
-        SaveDataToDB("SERVER",public_key,conn, cursor)
+        #SaveUserToDB("SERVER",public_key,conn, cursor)
     else:
-        #with open(path+'key.pickle', 'rb') as handle:
-            #SERV:Server = pickle.load(handle)
         with open(path+'privatekey.pem', 'rb') as file:
             SERV.setPrvKey(rsa.PrivateKey.load_pkcs1(file.read()))
         with open(path+'publickey.pem', 'rb') as file:
             SERV.setPubKey(rsa.PublicKey.load_pkcs1(file.read()))
-
     return SERV
 
 
@@ -82,7 +71,7 @@ def GetUsername(username,conn, cursor):
         if(len(data) == 0):
             return login
 
-def SaveDataToDB(username,key,conn, cursor):
+def SaveUserToDB(username,key,conn, cursor):
         cursor.execute("INSERT INTO Users (username, PublicKey) VALUES ( %(u)s,%(p)s)", {'u': username, 'p':key})
         conn.commit()
 
@@ -129,28 +118,11 @@ def AuthTaskGeneration(user, conn, cursor):
     encrypt = base64.b64encode(encrypt).decode('ascii')
     return encrypt, SEC
 
-
-#def GetPublickey():
-#    return SERV.getPubKey()
-
-#def LoadPrivateKey():    
-    with open('./key/key.pickle', 'rb') as handle:
-        u:Server = pickle.load(handle)
-        #key = rsa.PrivateKey.load_pkcs1(str(u.getKey()))
-        #print(u.getKey().save_pkcs1().decode('utf8') )
-        return u
-        
-    return False
-
 #save private key as pem text and try to read it that way
 def Decrypt(text, prvkey):
     msg = rsa.decrypt(base64.b64decode(text),prvkey)
     #msg = rsa.decrypt(bytes(text, encoding='utf-8'), prvkey)
     return msg.decode('utf-8')
-
-#for test | Delete later 
-#def getPrivateKeyString():
-    return LoadPrivateKey().getKey().save_pkcs1().decode('utf8') 
 
 def SaveMsgToDB(senderid, receiver, part, msg, conn, cursor):
         cursor.execute("INSERT INTO MSG (sender, to, participants, msg) VALUES ( %(sid)s,%(r)s,%(p)s,%(m)s)", {'sid': senderid, 't':receiver, 'p':part, 'm':msg})
