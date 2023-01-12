@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import random
 import string
 import rsa
@@ -12,8 +13,6 @@ class Server:
         self.username = "SERVER"
         self.pubkey = pubkey
         self.prvkey=prvkey
-    #def __init__(self):
-    #    self.username = "SERVER"
 
     def getPubKey(self):
         return self.pubkey
@@ -24,7 +23,7 @@ class Server:
     def setPrvKey(self, prvkey):
         self._prvkey = prvkey
 
-SERV = None
+
 #returns new privatekey, publickey
 def GenerateKeys(): 
     #key specs
@@ -33,33 +32,23 @@ def GenerateKeys():
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
     path = './key/'
-    SERV = None
-#Creating directory and saving private key
+    #Creating directory and saving private key
     # Check whether the specified path exists or not
     isExist = os.path.exists(path)
+    SERV = Server(public_key,private_key)
     if not isExist:
         # Create a new directory because it does not exist 
         os.makedirs(path)
-        #with open(path+'key.pickle', 'wb') as handle:
-            #SERV = Server(public_key,private_key)
-            #SERV.setPrvKey(private_key)
-            #SERV.getPubKey(public_key)
-            #pickle.dump(SERV, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            #publicKeyPkcs1PEM = public_key.save_pkcs1().decode('utf8') 
-        SERV = Server(public_key,private_key)
         with open(path+'privatekey.pem', 'wb') as file:
             file.write(private_key.save_pkcs1('PEM'))
         with open(path+'publickey.pem', 'wb') as file:
             file.write(public_key.save_pkcs1('PEM'))
-        SaveDataToDB("SERVER",public_key,conn, cursor)
+        #SaveUserToDB("SERVER",public_key,conn, cursor)
     else:
-        #with open(path+'key.pickle', 'rb') as handle:
-            #SERV:Server = pickle.load(handle)
         with open(path+'privatekey.pem', 'rb') as file:
             SERV.setPrvKey(rsa.PrivateKey.load_pkcs1(file.read()))
         with open(path+'publickey.pem', 'rb') as file:
             SERV.setPubKey(rsa.PublicKey.load_pkcs1(file.read()))
-
     return SERV
 
 
@@ -83,35 +72,36 @@ def GetUsername(username,conn, cursor):
         if(len(data) == 0):
             return login
 
-def SaveDataToDB(username,key,conn, cursor):
+def SaveUserToDB(username,key,conn, cursor):
         cursor.execute("INSERT INTO Users (username, PublicKey) VALUES ( %(u)s,%(p)s)", {'u': username, 'p':key})
         conn.commit()
 
 def DownloadLastMsgs(username,conn, cursor):
-    cursor.execute("SET @msg_rank = 0")
-    cursor.execute("""SELECT reciver, sender, encoded_to, msg, send_time, Opened 
-    FROM 
-     (SELECT reciver, sender, encoded_to, msg, send_time, Opened,  
-                  @msg_rank := IF(@current_sender = sender, @msg_rank + 1, 1) AS msg_rank, 
-                  @current_sender := sender  
-       FROM MSG 
-       ORDER BY sender, send_time DESC 
-     ) ranked 
-    WHERE (reciver =  %(u)s OR sender= %(u)s) AND encoded_to = %(u)s  AND msg_rank <= 1""", {'u': username}) 
+    cursor.execute("""SELECT * FROM MSG 
+WHERE id IN (
+    SELECT MAX(id) AS last_msg_id 
+    FROM MSG WHERE (reciver= %(u)s OR sender =%(u)s) AND encoded_to = %(u)s 
+    GROUP BY IF(sender = %(u)s, reciver, sender)
+)""", {'u': username}) 
     data = cursor.fetchall()
     print(data)
     return data
 
-
-def DownloadMsgs(owner, sender,key,conn, cursor):
-    cursor.execute("""SELECT reciver, sender, encoded_to, msg, send_time, Opened 
+#sender means 2nd participant here
+def DownloadMsgs(owner:str, sender:str, page:int ,conn, cursor):
+    p = page*10
+    cursor.execute("""SELECT * 
     FROM MSG 
+    WHERE ((reciver=%(o)s AND sender=%(s)s) OR (reciver=%(s)s AND sender=%(o)s)) AND encoded_to = %(o)s 
     ORDER BY send_time DESC 
-    WHERE ((reciver =  %(o)s AND sender= %(s)s) OR (reciver =  %(s)s AND sender= %(o)s)) AND encoded_to = %(u)s 
-    LIMIT 10""", {'o': owner, 's':sender}) 
-
-    #dodać zmianę zaczerpniętych wiadomości z Opened 0 -> 1
+    LIMIT 10 OFFSET """+str(p), {'o': owner, 's':sender}) 
     data = cursor.fetchall()
+    print("sql ok")
+    for c in data:
+        cursor.execute("""UPDATE MSG
+        SET Opened = 1
+        WHERE id = %(id)s""", {'id': c[0]})
+    print(data)
     return data
 
 # returns unencrypted and encrypted secret
@@ -120,7 +110,7 @@ def AuthTaskGeneration(user, conn, cursor):
     characters = string.digits + string.ascii_letters + string.punctuation
     SEC = ''.join(random.choice(characters) for i in range(128))
     pk = SendUserKey(user, conn, cursor)
-    pk = pk.replace(b'\\n', b'\n').decode('ascii')
+    #pk = pk.replace(b'\\n', b'\n').decode('ascii')
     print(type(pk), pk)
     #key = b'-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAwC9NK0yGvK4Y3CazjBaXysRMNxd6oD0RJQfCrAODFF2+yS6Fn5Xb\nrhL+ZB7bUwFh/3gX0EBmRf+Sq96JWd1WPvRcU5N6Qg6TntKKgdtcTDL+l083oSi4\nziyQMXEkJE9/G/63V4l7hj5Vm2I9hZRoRSCP/yQbTmlOwxAWeH9aqnhk0a/C82Y0\nWa5av019NC9cWCu0uEwx5QfMivqrQGU4w9XZwtNlxJsl6o3f5ZyVewKTAR7s8m8e\nK3kep5Tv7lGsUWGXNOpPAreEuPKqKPH0VSzYVKF7l9iv9viZalyZRgf8z3odhrOl\n3JYkT44i1G3jyohC/f+ea8zYILpRzG1kIQIDAQAB\n-----END RSA PUBLIC KEY-----\n'
     pubkey = rsa.PublicKey.load_pkcs1(pk)
@@ -129,40 +119,26 @@ def AuthTaskGeneration(user, conn, cursor):
     encrypt = base64.b64encode(encrypt).decode('ascii')
     return encrypt, SEC
 
-
-#def GetPublickey():
-#    return SERV.getPubKey()
-
-#def LoadPrivateKey():    
-    with open('./key/key.pickle', 'rb') as handle:
-        u:Server = pickle.load(handle)
-        #key = rsa.PrivateKey.load_pkcs1(str(u.getKey()))
-        #print(u.getKey().save_pkcs1().decode('utf8') )
-        return u
-        
-    return False
-
 #save private key as pem text and try to read it that way
 def Decrypt(text, prvkey):
     msg = rsa.decrypt(base64.b64decode(text),prvkey)
     #msg = rsa.decrypt(bytes(text, encoding='utf-8'), prvkey)
     return msg.decode('utf-8')
 
-#for test | Delete later 
-#def getPrivateKeyString():
-    return LoadPrivateKey().getKey().save_pkcs1().decode('utf8') 
-
-def SaveMsgToDB(sender, receiver, encoded_to, send_time, msg, conn, cursor):
-        cursor.execute("INSERT INTO MSG (sender, reciver, encoded_to, send_time, msg, Opened) VALUES ( %(send)s,%(r)s,%(ento)s,%(time)s,%(m)s,0)", {'send': sender, 'r':receiver, 'ento':encoded_to, 'time':send_time, 'm':msg})
-        conn.commit()
+def SaveMsgToDB(sender, receiver, encoded_to,msg, opened,conn, cursor):
+    #id	sender	reciver	encoded_to	send_time	msg	Opened
+        time = (datetime.utcnow()+timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute("INSERT INTO MSG (sender, reciver, encoded_to, send_time, msg, Opened) VALUES ( %(sender)s,%(reciver)s,%(encoded_to)s, %(send_time)s,%(msg)s,%(Opened)s)", {'sender':sender, 'reciver':receiver, 'encoded_to':encoded_to, 'send_time':time, 'msg':msg, 'Opened':opened})
+        conn.commit() 
 
 def SendUserKey(req_user, conn, cursor):
-    cursor.execute("SELECT PublicKey from Users WHERE username= %(r_user)s", {'r_user': req_user})
-    conn.commit()
+    cursor.execute("SELECT PublicKey FROM Users WHERE username= %(r_user)s", {'r_user': req_user})
     key=cursor.fetchone() #fetchall returns a list of results
-    if(len(key)==0):
+    print("=== KEY ===")
+    print(key)
+    if key is None or (len(key)==0):
         return False
     else:
-        return key[0][2:-1].encode("ASCII")
+        return (key[0][2:-1].encode("ASCII")).replace(b'\\n', b'\n').decode('ascii')
 
 

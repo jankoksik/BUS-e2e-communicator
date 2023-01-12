@@ -42,7 +42,7 @@ def RegisterPage():
     username = content['username']
     publicKey = str(content['PubKey'])
     usernameWithHash = controller.GetUsername(username, conn, cursor)
-    controller.SaveDataToDB(usernameWithHash,publicKey, conn, cursor)
+    controller.SaveUserToDB(usernameWithHash,publicKey, conn, cursor)
     return str(usernameWithHash)
 
 @app.route("/pubkey", methods=["POST"])
@@ -100,18 +100,57 @@ def Download():
                     for c in lastMsgs:
                         d = collections.OrderedDict()
                         #to, sender, encoded_to, msg, time, Opened
-                        d["reciver"] = c[0]
-                        d["sender"] = c[1]
-                        d["encoded_to"] = c[2]
-                        d["msg"] = c[3]
+                        d["id"] = c[0]
+                        d["reciver"] = c[1]
+                        d["sender"] = c[2]
+                        d["encoded_to"] = c[3]
                         d["send_time"] = c[4]
-                        d["Opened"] = c[5]
+                        d["msg"] = c[5]
+                        d["Opened"] = c[6]
                         objects_list.append(d)
-                    print("AUTH OK ")
+                    print("DownloadLastMsgs : AUTH OK ")
                     return json.dumps(objects_list,  default=str)
         else:
             ENC_.remove(token)
-    print("AUTH FAILED")
+    print("DownloadLastMsgs : AUTH FAILED")
+    return str(False)
+
+
+
+#test function not completed yet
+@app.route("/DownloadMsgs", methods=["POST"])
+def DownloadMSG():
+    content = request.get_json()
+    username = content['username']
+    participant = content['participant']
+    page = int(content['page'])
+    enc = content['ENC']
+    dec = controller.Decrypt(content['SEC'], server.getPrvKey())
+
+    for token in ENC_:
+        if not token.isExpired() :
+            if token.getEnc() == enc and token.getUsername() == username :
+                if token.getSec() == dec:
+                    ENC_.remove(token)
+                    #download msg's
+                    Msgs = controller.DownloadMsgs(username,participant,page, conn, cursor) 
+                    objects_list = []
+                    for c in Msgs:
+                        d = collections.OrderedDict()
+                        #id, reciver, sender, encoded_to, msg, send_time, Opened 
+                        d["id"] = c[0]
+                        d["sender"] = c[1]
+                        d["reciver"] = c[2]
+                        d["encoded_to"] = c[3]
+                        d["send_time"] = c[4]
+                        d["msg"] = c[5]
+                        d["Opened"] = c[6]
+                        objects_list.append(d)
+                    print("DownloadMsgs : AUTH OK ")
+                    return json.dumps(objects_list,  default=str)
+        else:
+            ENC_.remove(token)
+    print("DownloadMsgs : AUTH FAILED")
     return str(False)
     
 
@@ -134,6 +173,32 @@ def getUserPublicKey():
     key=controller.SendUserKey(req_user, conn, cursor)
     return str(key)
 
+@app.route("/MSG", methods=["POST"])
+def MSG():
+    content = request.get_json()
+    username = content['username']
+    participant = content['participant']
+    msg = content['msg'] # to em
+    msg2 = content['msg2'] #to self
+    enc = content['ENC']
+    dec = controller.Decrypt(content['SEC'], server.getPrvKey())
+    for token in ENC_:
+        if not token.isExpired() :
+            if token.getEnc() == enc and token.getUsername() == username :
+                if token.getSec() == dec:
+                    ENC_.remove(token)
+                    # auth ok
+                    print("Sending : AUTH OK ")
+                    #send to self
+                    controller.SaveMsgToDB(username, participant, username, msg2, 1 ,conn, cursor)
+                    #send to em
+                    controller.SaveMsgToDB(username, participant, participant, msg, 0 ,conn, cursor)
+
+                    return str(True)
+        else:
+            ENC_.remove(token)
+    print("Sending : AUTH FAILED")
+    return str(False)
 
 @app.route("/testMSG", methods=["POST"])
 def testMSG():

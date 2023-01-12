@@ -38,64 +38,51 @@
         <div class="col-md-6 col-lg-7 col-xl-8">
           <ul class="list-unstyled">
 
+            <!-- Chat -->
+            {%for msg in Msgs%}
+            {% if msg.getMe() %}
             <li class="d-flex justify-content-between mb-4">
-              <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
-              <div class="card">
+              <img src="https://i.pinimg.com/originals/75/40/81/754081d638bff31629e6577dee25ad68.png" alt="avatar"
+                class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60" height="60">
+              <div class="card flex-fill">
                 <div class="card-header d-flex justify-content-between p-3">
-                  <p class="fw-bold mb-0">Brad Pitt</p>
-                  <p class="text-muted small mb-0"><i class="far fa-clock"></i> 12 mins ago</p>
+                  <p class="fw-bold mb-0">{{msg.getName()}}</p>
+                  <p class="text-muted small mb-0"> {{msg.getDate()}}</p>
                 </div>
                 <div class="card-body">
                   <p class="mb-0">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                    labore et dolore magna aliqua.
+                    {{msg.getMsg()}}
                   </p>
                 </div>
               </div>
             </li>
+            {% else %}
             <li class="d-flex justify-content-between mb-4">
-              <div class="card w-100">
+              <div class="card flex-fill">
                 <div class="card-header d-flex justify-content-between p-3">
-                  <p class="fw-bold mb-0">Lara Croft</p>
-                  <p class="text-muted small mb-0"><i class="far fa-clock"></i> 13 mins ago</p>
+                  <p class="fw-bold mb-0">{{msg.getName()}}</p>
+                  <p class="text-muted small mb-0">{{msg.getDate()}}</p>
                 </div>
                 <div class="card-body">
                   <p class="mb-0">
-                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
-                    laudantium.
+                    {{msg.getMsg()}}
                   </p>
                 </div>
               </div>
-              <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-5.webp" alt="avatar"
-                class="rounded-circle d-flex align-self-start ms-3 shadow-1-strong" width="60">
+              <img src="https://i.pinimg.com/originals/75/40/81/754081d638bff31629e6577dee25ad68.png" alt="avatar"
+                class="rounded-circle d-flex align-self-start ms-3 shadow-1-strong" width="60" height="60">
             </li>
-            <li class="d-flex justify-content-between mb-4">
-              <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
-              <div class="card">
-                <div class="card-header d-flex justify-content-between p-3">
-                  <p class="fw-bold mb-0">Brad Pitt</p>
-                  <p class="text-muted small mb-0"><i class="far fa-clock"></i> 10 mins ago</p>
-                </div>
-                <div class="card-body">
-                  <p class="mb-0">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                    labore et dolore magna aliqua.
-                  </p>
-                </div>
-              </div>
-            </li>
+            {% endif %}
+            {% endfor %}
 
 
 
 
 
-
-            <form action="/">
+            <form action="/chat?chch={{request.args.get('chch')}}"  method="post">
             <li class="d-flex justify-content-between mb-3">
               <div class="card w-100">
-                <input type="text"  class="form-control" id="msgBox"  maxlength ="256">
+                <input type="text"  class="form-control" id="msgBox"  name='msgBox' maxlength ="128">
               </div>
               <input type="submit" class="btn btn-info btn-rounded float-end" value="Send" >
             </li>
