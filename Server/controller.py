@@ -89,12 +89,12 @@ WHERE id IN (
 
 #sender means 2nd participant here
 def DownloadMsgs(owner:str, sender:str, page:int ,conn, cursor):
-    p = page*10
+    p = page*5
     cursor.execute("""SELECT * 
     FROM MSG 
     WHERE ((reciver=%(o)s AND sender=%(s)s) OR (reciver=%(s)s AND sender=%(o)s)) AND encoded_to = %(o)s 
     ORDER BY send_time DESC 
-    LIMIT 10 OFFSET """+str(p), {'o': owner, 's':sender}) 
+    LIMIT 5 OFFSET """+str(p), {'o': owner, 's':sender}) 
     data = cursor.fetchall()
     print("sql ok")
     for c in data:

@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
-from flask import Blueprint, render_template, request,redirect
+import os
+from flask import Blueprint, render_template, request,redirect, redirect, url_for, flash
 import requests
 from msg import msg
 from chat import chat
@@ -12,12 +13,27 @@ views = Blueprint(__name__, "views")
 
 @views.route("/")
 def MainPage():
-    return render_template("index.html")
+    path = './key/'
+    isExist = os.path.exists(path)
+    if not isExist:
+        #if request.method == 'POST':
+            #user=request.form['Login']
+            #print(user)
+            #redirect(url_for(RegisterPage))
+        return redirect(request.base_url+"register", code=302)
+        return render_template("index.html")
+    else:
+        return redirect(request.base_url+"chat", code=302)
 
-@views.route("/register")
+@views.route("/register", methods=('GET', 'POST'))
 def RegisterPage():
-    privKey, pubKey = controller.GenerateKeys()
-    return controller.SavePrivateAndSendPublicKey("user", privKey, pubKey)
+    #user='aa'
+    if request.method == 'POST':
+        user=request.form.get("Login")
+        privKey, pubKey = controller.GenerateKeys()
+        controller.SavePrivateAndSendPublicKey(user, privKey, pubKey)
+        return redirect("/chat", code=302)
+    return render_template("register.html")
 
 @views.route("/auth", methods=["POST"])
 def authorize():

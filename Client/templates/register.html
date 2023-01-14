@@ -13,11 +13,14 @@
               </div>
               <div class="col-xl-6">
                 <div class="card-body p-md-5 text-black">
-                    <h3 class="mb-5 text-uppercase">Register</h3>
+                    <h3 class="mb-5 text-uppercase">Zarejestruj się</h3>
+                    <form action="{{url_for('views.RegisterPage')}}" method="post">
                     <div class="form-outline mb-4">
-                        <input type="text" id="Login" class="form-control form-control-lg" />
                         <label class="form-label" for="Login">Login</label>
+                        <input type="text" id="Login" name="Login" class="form-control form-control-lg" />
                      </div>
+
+                     <!--
 
                      <div class="form-outline mb-4">
                         <input type="password" id="password" class="form-control form-control-lg" />
@@ -28,10 +31,12 @@
                         <input type="password" id="passwordRep" class="form-control form-control-lg" />
                         <label class="form-label" for="passwordRep">Repeat password</label>
                      </div>
+                     -->
                   
                     <div class="d-flex justify-content-end pt-3">
-                        <button type="button" class="btn btn-warning btn-lg ms-2">Register</button>
+                        <button type="submit" class="btn btn-warning btn-lg ms-2">Register</button>
                     </div>
+                  </form>
   
                 </div>
               </div>
