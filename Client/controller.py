@@ -54,11 +54,13 @@ def SavePrivateAndSendPublicKey(username, private_key, public_key):
 
 # Returns false if key doesn't exist and ture if everything seems ok
 def LoadPrivateKey():    
-    path = './key/'
-    with open(path+'key.pickle', 'rb') as handle:
+    _path = './key/key.pickle'
+    if not os.path.exists(_path):
+        return ""
+    with open(_path, 'rb') as handle:
         u:user = pickle.load(handle)
         return u
-    return False
+    return ""
     
 
 def RequestUserKey(req_user):

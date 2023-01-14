@@ -6,9 +6,7 @@
       <div class="row">
   
         <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0">
-  
-          <h5 class="font-weight-bold mb-3 text-center text-lg-start">bamBUS 🎍</h5>
-  
+          <h8 class="font-weight-bold mb-5 m-2 text-center text-lg-start"> 👤 {{username}} </h8>
           <div class="card">
             <div class="card-body">
                 <ul class="list-unstyled mb-0"></ul>
@@ -87,14 +85,26 @@
               <input type="submit" class="btn btn-info btn-rounded float-end" value="Send" >
             </li>
             </form>
-
-
-
           </ul>
+          <div class="float-right">
+            <form>
+              <ul>
+                <li class="d-flex justify-content-between mb-3">
+                  <input type="submit" name="act_button" value="<">
+                  <input type="button" name="act_button" onClick="window.location.href = window.location.href" value="♻️">
+                  <input type="submit" name="act_button" value=">">
+                </li>
+              </ul>
+            </form>
+          </div>
+          
         </div>
   
       </div>
   
     </div>
   </section>
+  <script>
+    
+    </script>
 {% endblock %}

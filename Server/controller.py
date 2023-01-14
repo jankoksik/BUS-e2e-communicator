@@ -31,14 +31,16 @@ def GenerateKeys():
     return privkey,pubkey
 
 def SavePrivateAndSendPublicKey(private_key, public_key,conn, cursor):
-    path = './key/'
+    path = './key/privatekey.pem'
+    path2 = './key/publickey.pem'
     #Creating directory and saving private key
     # Check whether the specified path exists or not
-    isExist = os.path.exists(path)
     SERV = Server(public_key,private_key)
-    if not isExist:
+    if not os.path.exists('./key/'):
+        os.makedirs('./key/')
+
+    if not os.path.exists(path) or not os.path.exists(path2):
         # Create a new directory because it does not exist 
-        os.makedirs(path)
         with open(path+'privatekey.pem', 'wb') as file:
             file.write(private_key.save_pkcs1('PEM'))
         with open(path+'publickey.pem', 'wb') as file:

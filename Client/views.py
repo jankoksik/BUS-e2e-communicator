@@ -21,7 +21,6 @@ def MainPage():
             #print(user)
             #redirect(url_for(RegisterPage))
         return redirect(request.base_url+"register", code=302)
-        return render_template("index.html")
     else:
         return redirect(request.base_url+"chat", code=302)
 
@@ -95,9 +94,11 @@ def chatz():
     chats = []
     Msgs = []
     username = testUsername()
+    if username == "":
+        return redirect(url_for('views.RegisterPage'), code=302)
     user = controller.LoadPrivateKey()
     ChoosedChat = request.args.get('chch')
-    if not ChoosedChat is None : 
+    if not ChoosedChat is None and not ChoosedChat == "" and not ChoosedChat == "None" : 
         x = ChoosedChat.split("-")
         ChoosedChat = x[0] + "#" + x[1]
         print("trying to read chat with " , ChoosedChat)
@@ -193,11 +194,13 @@ def chatz():
             if Msg.getName() == username:
                 Msg.setMe(True)
             Msgs.append(Msg)
-    return render_template("chat.html", chats = chats, Msgs= Msgs)
+    return render_template("chat.html", chats = chats, Msgs= Msgs, username=username)
 
 @views.route("/getUsername")
 def testUsername():
     user = controller.LoadPrivateKey()
+    if user == "":
+        return ""
     return str(user.getUsername())
 
 #All the time "rsa.pkcs1.DecryptionError: Decryption failed" error....
