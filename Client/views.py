@@ -218,6 +218,7 @@ def testMSG():
     r = requests.post("http://bus-e2e-communicator-server-1:6060/testMSG", data=json.dumps(pack), headers=headers)
     return r.text
 
+
 @views.route("/sendMsgTest")
 def sendmsgtest():
     #send_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())

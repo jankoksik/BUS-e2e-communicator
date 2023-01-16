@@ -7,6 +7,30 @@
   
         <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0">
           <h8 class="font-weight-bold mb-5 m-2 text-center text-lg-start"> 👤 {{username}} </h8>
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AddFriend">
+           +👥
+          </button>
+          
+          <!-- Modal -->
+          <div class="modal fade" id="AddFriend" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Znajdź znajomego 👥 </h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                  <div class="modal-body">
+                    <input type="text"  class="form-control" id="addF"  name='addF' maxlength ="32">
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" onclick="choose()" class="btn btn-primary">Wybierz</button>
+                  </div>
+              </div>
+            </div>
+          </div>
           <div class="card">
             <div class="card-body">
                 <ul class="list-unstyled mb-0"></ul>
@@ -105,6 +129,10 @@
     </div>
   </section>
   <script>
-    
-    </script>
+    function choose() {
+      let x = document.getElementById("addF").value;
+      const info = x.split('#');
+      window.location.href = "/chat?chch="+info[0] + "-"+info[1];
+    }
+  </script>
 {% endblock %}
