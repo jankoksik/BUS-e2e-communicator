@@ -82,7 +82,7 @@ def DownMsg(participant:str, page:int):
     encrypt =  rsa.encrypt(msg, pubkey)
     encrypt = base64.b64encode(encrypt).decode('ascii')
     #    participant = content['participant'], page = int(content['page'])
-    pack = {'ENC': str(secret), 'SEC' : str(encrypt), 'username' : str(user.getUsername()), 'participant' : str(participant), 'page':0}
+    pack = {'ENC': str(secret), 'SEC' : str(encrypt), 'username' : str(user.getUsername()), 'participant' : str(participant), 'page':page}
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     r = requests.post("http://bus-e2e-communicator-server-1:6060/DownloadMsgs", data=json.dumps(pack), headers=headers)
     print(r.text)
@@ -98,13 +98,14 @@ def chatz():
         return redirect(url_for('views.RegisterPage'), code=302)
     user = controller.LoadPrivateKey()
     ChoosedChat = request.args.get('chch')
+    page = request.args.get('page')
     if not ChoosedChat is None and not ChoosedChat == "" and not ChoosedChat == "None" : 
         x = ChoosedChat.split("-")
         ChoosedChat = x[0] + "#" + x[1]
         print("trying to read chat with " , ChoosedChat)
     
 
-        if request.method == "POST":
+        if request.method == "POST" and not username==ChoosedChat :
             #send msg
             data = request.form.get('msgBox')
             pack = {'req_user': str(ChoosedChat)}
@@ -147,7 +148,11 @@ def chatz():
         
 
     if not ChoosedChat is None:
-        DownMsgs = json.loads(DownMsg(ChoosedChat, 0))
+        if not type(page) == int:
+            page = 0
+        if page < 0:
+            page = 0
+        DownMsgs = json.loads(DownMsg(ChoosedChat, page))
         for m in reversed(DownMsgs):
             print(m)
             Msg = msg(m["sender"])
@@ -204,7 +209,7 @@ def testUsername():
     return str(user.getUsername())
 
 #All the time "rsa.pkcs1.DecryptionError: Decryption failed" error....
-@views.route("/testMSG")
+#@views.route("/testMSG")
 def testMSG():
     p = requests.post("http://bus-e2e-communicator-server-1:6060/pubkey")
     ServerPublicKey = bytes(p.text, encoding='utf-8')
@@ -219,7 +224,7 @@ def testMSG():
     return r.text
 
 
-@views.route("/sendMsgTest")
+#@views.route("/sendMsgTest")
 def sendmsgtest():
     #send_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
     sender='user#5452'

@@ -111,12 +111,12 @@
             </form>
           </ul>
           <div class="float-right">
-            <form>
+            <form method="get">
               <ul>
                 <li class="d-flex justify-content-between mb-3">
-                  <input type="submit" name="act_button" value="<">
-                  <input type="button" name="act_button" onClick="window.location.href = window.location.href" value="♻️">
-                  <input type="submit" name="act_button" value=">">
+                  <input type="submit" name="act_button" onClick="add()" value="<">
+                  <input type="button" name="ref" onClick="window.location.href = window.location.href" value="♻️">
+                  <input type="submit" name="act_button" onClick="sub()" value=">">
                 </li>
               </ul>
             </form>
@@ -133,6 +133,35 @@
       let x = document.getElementById("addF").value;
       const info = x.split('#');
       window.location.href = "/chat?chch="+info[0] + "-"+info[1];
+    }
+    function add() {
+      const urlParams = new URLSearchParams(queryString);
+      let page = urlParams.get('page');
+      if(Number.isInteger(page))
+      {
+        page+=1;
+      }else {
+        page = 0;
+      }
+      urlParams.set('page', page);
+      window.location.href = window.location.href;
+    }
+    function sub() {
+      const urlParams = new URLSearchParams(queryString);
+      let page = urlParams.get('page');
+      if(Number.isInteger(page) )
+      {
+        if(page > 1){
+          page -=1;
+        }else{
+          page=0;
+        }
+      }
+      else{
+        page = 0;
+      }
+      urlParams.set('page', page);
+      window.location.href = window.location.href;
     }
   </script>
 {% endblock %}

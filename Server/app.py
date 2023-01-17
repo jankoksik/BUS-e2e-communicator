@@ -155,7 +155,7 @@ def DownloadMSG():
     
 
 
-@app.route("/send", methods=["POST"])
+#@app.route("/send", methods=["POST"])
 def SenderPage():
     content = request.get_json()
     sender = content['sender']
@@ -189,10 +189,11 @@ def MSG():
                     ENC_.remove(token)
                     # auth ok
                     print("Sending : AUTH OK ")
-                    #send to self
-                    controller.SaveMsgToDB(username, participant, username, msg2, 1 ,conn, cursor)
-                    #send to em
-                    controller.SaveMsgToDB(username, participant, participant, msg, 0 ,conn, cursor)
+                    if not username==participant:
+                        #send to self
+                        controller.SaveMsgToDB(username, participant, username, msg2, 1 ,conn, cursor)
+                        #send to em
+                        controller.SaveMsgToDB(username, participant, participant, msg, 0 ,conn, cursor)
 
                     return str(True)
         else:
