@@ -66,6 +66,7 @@ def GenerateLogin(username,length):
 def GetUsername(username,conn, cursor):
     if len(username) > 27:
         username = username[:27]
+    username = username.replace("#", "_")
     while True:
         login = GenerateLogin(username,4)
         cursor.execute("SELECT id from Users WHERE username= %(login)s", {'login': login})

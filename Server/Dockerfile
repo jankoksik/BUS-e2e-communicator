@@ -8,7 +8,8 @@ ENV OPEN_PORT=${OPEN_PORT}
 RUN apk add --no-cache gcc musl-dev linux-headers
 RUN apk add dos2unix --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ --allow-untrusted
 COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 COPY . .
 EXPOSE ${OPEN_PORT}
 RUN  dos2unix *.py
