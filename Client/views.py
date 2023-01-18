@@ -99,6 +99,8 @@ def chatz():
     user = controller.LoadPrivateKey()
     ChoosedChat = request.args.get('chch')
     page = request.args.get('page')
+    print("start")
+    print(page)
     if not ChoosedChat is None and not ChoosedChat == "" and not ChoosedChat == "None" : 
         x = ChoosedChat.split("-")
         ChoosedChat = x[0] + "#" + x[1]
@@ -148,11 +150,21 @@ def chatz():
         
 
     if not ChoosedChat is None:
+        if page is None:
+            page=0
+        elif page.isnumeric():
+            page = int(page)
+        else:
+            page=0
+
+        print(page)
+        print(type(page))
         if not type(page) == int:
             page = 0
         if page < 0:
             page = 0
         DownMsgs = json.loads(DownMsg(ChoosedChat, page))
+        print (page)
         for m in reversed(DownMsgs):
             print(m)
             Msg = msg(m["sender"])
@@ -190,7 +202,8 @@ def chatz():
         ChoosedChat = chats[0].getName()
         chats[0].setActive(True)
         print("trying to read chat with " , ChoosedChat)
-        DownMsgs = json.loads(DownMsg(ChoosedChat, 0))
+        DownMsgs = json.loads(DownMsg(ChoosedChat, page))
+        print(page)
         for m in reversed(DownMsgs):
             Msg = msg(m["sender"])
             Msg.setDate(datetime.strptime(m["send_time"], '%Y-%m-%d %H:%M:%S'))

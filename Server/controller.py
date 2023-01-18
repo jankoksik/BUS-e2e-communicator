@@ -99,6 +99,9 @@ def DownloadMsgs(owner:str, sender:str, page:int ,conn, cursor):
     LIMIT 5 OFFSET """+str(p), {'o': owner, 's':sender}) 
     data = cursor.fetchall()
     print("sql ok")
+    print("PAAAAGEEEEE")
+    print(type(page))
+    print(page)
     for c in data:
         cursor.execute("""UPDATE MSG
         SET Opened = 1

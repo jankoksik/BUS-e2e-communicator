@@ -8,7 +8,7 @@
         <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0">
           <h8 class="font-weight-bold mb-5 m-2 text-center text-lg-start"> 👤 {{username}} </h8>
           <!-- Button trigger modal -->
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AddFriend">
+          <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#AddFriend">
            +👥
           </button>
           
@@ -111,7 +111,6 @@
             </form>
           </ul>
           <div class="float-right">
-            <form method="get">
               <ul>
                 <li class="d-flex justify-content-between mb-3">
                   <input type="submit" name="act_button" onClick="add()" value="<">
@@ -119,7 +118,6 @@
                   <input type="submit" name="act_button" onClick="sub()" value=">">
                 </li>
               </ul>
-            </form>
           </div>
           
         </div>
@@ -135,21 +133,28 @@
       window.location.href = "/chat?chch="+info[0] + "-"+info[1];
     }
     function add() {
-      const urlParams = new URLSearchParams(queryString);
-      let page = urlParams.get('page');
-      if(Number.isInteger(page))
+      var url = new URL(window.location.href);
+      if (url.searchParams.has('page')) {
+        let page = url.searchParams.get('page');
+        page = parseInt(page, 10);
+        if(Number.isInteger(page) && page>=0)
       {
         page+=1;
       }else {
         page = 0;
       }
-      urlParams.set('page', page);
-      window.location.href = window.location.href;
+      url.searchParams.set('page', page);
+      }else{
+        url.searchParams.append('page', 1);
+      }
+      window.location.href = url;
     }
     function sub() {
-      const urlParams = new URLSearchParams(queryString);
-      let page = urlParams.get('page');
-      if(Number.isInteger(page) )
+      var url = new URL(window.location.href);
+      if (url.searchParams.has('page')) {
+        let page = url.searchParams.get('page');
+        page = parseInt(page, 10);
+        if(Number.isInteger(page) )
       {
         if(page > 1){
           page -=1;
@@ -160,8 +165,11 @@
       else{
         page = 0;
       }
-      urlParams.set('page', page);
-      window.location.href = window.location.href;
+      url.searchParams.set('page', page);
+      }else{
+        url.searchParams.append('page', 0);
+      }
+      window.location.href = url;
     }
   </script>
 {% endblock %}
