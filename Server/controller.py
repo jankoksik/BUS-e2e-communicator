@@ -97,7 +97,7 @@ def DownloadMsgs(owner:str, sender:str, page:int ,conn, cursor):
     FROM MSG 
     WHERE ((reciver=%(o)s AND sender=%(s)s) OR (reciver=%(s)s AND sender=%(o)s)) AND encoded_to = %(o)s 
     ORDER BY send_time DESC 
-    LIMIT 5 OFFSET %(p)s""", {'o': owner, 's':sender, 'p':page}) 
+    LIMIT 5 OFFSET %(p)s""", {'o': owner, 's':sender, 'p':p}) 
     data = cursor.fetchall()
     print("sql ok")
     print("PAAAAGEEEEE")
