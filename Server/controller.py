@@ -5,7 +5,7 @@ import rsa
 import base64
 import os
 import requests
-import pickle
+import secrets
 import json
 
 class Server:
@@ -97,7 +97,7 @@ def DownloadMsgs(owner:str, sender:str, page:int ,conn, cursor):
     FROM MSG 
     WHERE ((reciver=%(o)s AND sender=%(s)s) OR (reciver=%(s)s AND sender=%(o)s)) AND encoded_to = %(o)s 
     ORDER BY send_time DESC 
-    LIMIT 5 OFFSET """+str(p), {'o': owner, 's':sender}) 
+    LIMIT 5 OFFSET %(p)s""", {'o': owner, 's':sender, 'p':page}) 
     data = cursor.fetchall()
     print("sql ok")
     print("PAAAAGEEEEE")
@@ -114,7 +114,7 @@ def DownloadMsgs(owner:str, sender:str, page:int ,conn, cursor):
 def AuthTaskGeneration(user, conn, cursor):
     pk = None
     characters = string.digits + string.ascii_letters + string.punctuation
-    SEC = ''.join(random.choice(characters) for i in range(128))
+    SEC = ''.join(secrets.choice(characters) for i in range(128))
     pk = SendUserKey(user, conn, cursor)
     #pk = pk.replace(b'\\n', b'\n').decode('ascii')
     print(type(pk), pk)
