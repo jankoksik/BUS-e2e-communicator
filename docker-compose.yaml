@@ -43,6 +43,17 @@ services:
     ports:      
       - "${CLIENT_2_PORT}:${CLIENT_2_PORT}"
 
+  client3:
+    build:
+      context: ./Client
+      args:
+        OPEN_PORT: ${CLIENT_3_PORT}
+    restart: always
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+    ports:      
+      - "${CLIENT_3_PORT}:${CLIENT_3_PORT}"
+
   server:
     build:
       context: ./Server

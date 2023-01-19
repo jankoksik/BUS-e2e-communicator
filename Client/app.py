@@ -20,4 +20,4 @@ def page_not_found(e):
     return redirect(url_for('views.chatz'), code=302)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
